@@ -34,3 +34,30 @@ if first_time:
     weather.store_weather_data(condensed)
     print("Weather data stored.")
     
+def get_forecast():
+    pass
+
+def store_forecast():
+    pass
+
+def get_weather_event_score():
+    pass
+
+def create_model():
+    pass
+
+def predict_weather_event():
+    pass
+
+def get_music_selection():
+    pass
+
+def get_last_fm():
+    pass
+
+def get_season():
+    pass
+
+def get_city():
+    pass
+
