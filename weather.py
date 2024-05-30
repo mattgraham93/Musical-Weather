@@ -61,9 +61,9 @@ def analyze_condensed_weather(historical_weather):
     condensed = get_historical_scores(condensed)
     return condensed.sort_values('weather_score_weighted', ascending=False)
 
-def store_weather_data(data):
+def store_weather_data(data, subject):
     mongo_client = mongodb.get_client()
-    weather_db = mongo_client.client['weather']
+    weather_db = mongo_client.client[f'weather.{subject}']
     collection = weather_db['seattle']
     df = pd.DataFrame(data)  # Convert the dictionary to a DataFrame
     collection.insert_many(df.to_dict('records'))  # Now you can call to_dict on df
@@ -90,9 +90,6 @@ def get_weather_codes():
     wc_df.columns = ['weather_code', 'description', 'image']
     wc_df['weather_score'] = wc_df['description'].apply(get_weather_score)
     return wc_df
-
-def weather_weight_model(historical_weather):
-    pass
 
 def map_weather(description):
     if 'Sunny' in description:
@@ -137,9 +134,6 @@ def weather_main():
     print('Getting weather data for Seattle')
     historical_weather = wh.get_historical_weather(start, end)
     historical_weather['season'] = pd.Series(historical_weather['date']).apply(lambda date: get_season(date.date()))
-    # get stored data
-    # weather_db = weather_main()
-    # print('Weather data retrieved successfully')
 
     historical_weather = pd.DataFrame(historical_weather)
     # print(f'{historical_weather.head(5)}')

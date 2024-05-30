@@ -18,3 +18,19 @@
     - anything outside of weather events (seasons)
     - ability to select a city
 '''
+
+
+import weather
+import mongodb
+import pandas as pd
+import numpy as np 
+
+first_time = True
+
+if first_time:
+    historical_weather, condensed = weather.weather_main()
+    print("Storing weather data...")
+    weather.store_weather_data(historical_weather)
+    weather.store_weather_data(condensed)
+    print("Weather data stored.")
+    
