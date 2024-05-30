@@ -35,8 +35,7 @@ def get_historical_scores(historical_weather):
 
     historical_weather['weather_score_weighted'] = np.where(historical_weather['weather_score'] < 0,
                                     (historical_weather['weather_score'] * abs(historical_weather['weight'])) + historical_weather['weight'],
-                                    (historical_weather['weather_score'] * historical_weather['weight']) + historical_weather['weight']
-                                   )
+                                    (historical_weather['weather_score'] * historical_weather['weight']) + historical_weather['weight'])
 
     historical_weather.drop(columns=['base', 'good', 'bad'], inplace=True)
     return historical_weather.sort_values('weather_score_weighted', ascending=False)
