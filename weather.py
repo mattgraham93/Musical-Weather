@@ -11,6 +11,79 @@ import weather_historical as wh
 import weather_today as wt
 from datetime import datetime
 
+from sklearn.preprocessing import StandardScaler, PowerTransformer, LabelEncoder # for standardizing the Data
+from sklearn.decomposition import PCA # for PCA calculation
+from scipy.stats import yeojohnson
+from statsmodels.tsa.arima.model import ARIMA
+
+
+def create_model(historical_weather):
+    model = ARIMA(historical_weather, order=(5,1,0))
+    return model
+
+def get_forecast():
+    return wt.get_todays_weather()
+
+def get_todays_score(todays_forecast):
+    todays_forecast['weather_score'] = todays_forecast['weather_score'].fillna(0).astype(int)
+
+    todays_forecast['base'] = todays_forecast['daylight_duration'] + todays_forecast['temperature_2m_max']
+    todays_forecast['good'] = todays_forecast['sunshine_duration'] + todays_forecast['shortwave_radiation_sum']
+
+    todays_forecast['bad'] = (todays_forecast['daylight_duration'] - todays_forecast['sunshine_duration']
+        ) + (
+            todays_forecast['rain_sum'] * todays_forecast['precipitation_hours']
+            ) + (
+                (todays_forecast['snowfall_sum'] * todays_forecast['precipitation_hours'])**2
+                )
+
+    todays_forecast['weight'] = todays_forecast['base'] + todays_forecast['good'] - todays_forecast['bad']
+
+    todays_forecast['weight'] = np.where((todays_forecast['precipitation_sum'] > 0) & (todays_forecast['weight'] > 0), 
+                                todays_forecast['weight'] * -1 ,
+                                todays_forecast['weight']
+                                ) 
+
+    todays_forecast['weather_score_weighted'] = np.where(todays_forecast['weather_score'] < 0,
+                                    (todays_forecast['weather_score'] * abs(todays_forecast['weight'])) + todays_forecast['weight'],
+                                    (todays_forecast['weather_score'] * todays_forecast['weight']) + todays_forecast['weight'])
+
+    todays_forecast.drop(columns=['base', 'good', 'bad'], inplace=True)
+    return todays_forecast
+
+
+def finalize_historical_weather(historical_weather):
+    # Select numerical columns once
+    numerical_cols = historical_weather.select_dtypes(include=[np.number]).columns
+
+    # Perform Yeo-Johnson transformation
+    y = historical_weather['weather_score_weighted']
+    y, fitted_lambda = yeojohnson(y, lmbda=None)
+    pt = PowerTransformer(method='yeo-johnson')
+    data = pt.fit_transform(historical_weather[numerical_cols])
+    data = pd.DataFrame(data, columns=numerical_cols)
+
+    # Standardize the data
+    sc = StandardScaler() 
+    X_std = sc.fit_transform(data) 
+
+    # Perform PCA
+    pca = PCA(n_components = 7)
+    X_pca = pca.fit_transform(X_std)
+
+    # Get the most important features
+    n_pcs= pca.n_components_
+    most_important = [np.abs(pca.components_[i]).argmax() for i in range(n_pcs)]
+    most_important_names = [numerical_cols[most_important[i]] for i in range(n_pcs)]
+
+    # Create final DataFrame
+    final_hist = data[most_important_names]
+    final_hist_pca = pca.transform(final_hist)
+    final_hist_pca_df = pd.DataFrame(final_hist_pca, columns=[f'PC{i}' for i in range(1, min(final_hist.shape)+1)])
+
+    # Add the independent variable to the DataFrame
+    final_hist_pca_df['description'] = historical_weather['description'].values
+    return final_hist_pca_df
 
 def get_historical_scores(historical_weather):
     # Calculate the weather score       
@@ -38,7 +111,7 @@ def get_historical_scores(historical_weather):
                                     (historical_weather['weather_score'] * historical_weather['weight']) + historical_weather['weight'])
 
     historical_weather.drop(columns=['base', 'good', 'bad'], inplace=True)
-    return historical_weather.sort_values('weather_score_weighted', ascending=False)
+    return historical_weather
 
 def analyze_condensed_weather(historical_weather):
     condensed = pd.DataFrame(
@@ -62,16 +135,12 @@ def analyze_condensed_weather(historical_weather):
     return condensed.sort_values('weather_score_weighted', ascending=False)
 
 def store_weather_data(data, subject):
-    mongo_client = mongodb.get_client()
-    weather_db = mongo_client.client[f'weather.{subject}']
-    collection = weather_db['seattle']
     df = pd.DataFrame(data)  # Convert the dictionary to a DataFrame
-    collection.insert_many(df.to_dict('records'))  # Now you can call to_dict on df
-    return weather_db
+    mongodb.store_collection(f'weather.{subject}', 'seattle', df.to_dict('records'))
+    return f'weather.{subject}'
 
-def get_stored_weather(weather_db, city):
-    collection = weather_db[city]
-    return collection.find_one()
+def get_stored_weather(database_name, city):
+    return mongodb.get_stored_data(database_name, city)
 
 def get_weather_score(weather_event):
     # get the sentiment score
@@ -118,7 +187,6 @@ def get_season(date):
     return season
 
 def weather_main():
-
     # Get today's date
     today = datetime.now()
 
@@ -130,13 +198,12 @@ def weather_main():
     end = yesterday.strftime('%Y-%m-%d')
     start = start.strftime('%Y-%m-%d')
 
-    # # get and store latest data
+    # get and store latest data
     print('Getting weather data for Seattle')
     historical_weather = wh.get_historical_weather(start, end)
     historical_weather['season'] = pd.Series(historical_weather['date']).apply(lambda date: get_season(date.date()))
 
     historical_weather = pd.DataFrame(historical_weather)
-    # print(f'{historical_weather.head(5)}')
     historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
     print(f'Getting weather codes')
     weather_codes = get_weather_codes()
@@ -144,24 +211,23 @@ def weather_main():
     weather_codes.drop(columns='image', inplace=True)
     print(f'Analyzing and weighing weather data')
     joined = historical_weather.merge(weather_codes, on='weather_code', how='left')
-    # condensed = analyze_condensed_weather(joined)
-        # print(f"Top 5 weather conditions for Seattle:")
-    # print(condensed.head(5))
 
     historical_weather = get_historical_scores(joined)
+    historical_weather = finalize_historical_weather(historical_weather)
     condensed = analyze_condensed_weather(joined)
 
-    final_cols = ['date', 'description', 'season', 'weather_score_weighted', 'weight', 'weather_score', 
-                        'weather_code', 'temperature_2m_mean', 'temperature_2m_min', 'temperature_2m_max',
-                        'precipitation_sum', 'rain_sum', 'snowfall_sum',
-                        'daylight_duration', 'sunshine_duration', 'precipitation_hours', 
-                        'wind_speed_10m_max', 'wind_gusts_10m_max', 'shortwave_radiation_sum'
-                        ]
+    # Get today's forecast
+    print('Getting today\'s forecast')
+    todays_forecast = get_forecast()
+    todays_forecast['season'] = get_season(today)
+    todays_forecast = pd.DataFrame(todays_forecast, index=[0])
+    todays_forecast = todays_forecast.merge(weather_codes, on='weather_code', how='left')
+    todays_forecast = get_todays_score(todays_forecast)
+    # Only keep columns in final_cols that exist in todays_forecast
+    final_cols = [col for col in final_cols if col in todays_forecast.columns]
+    todays_forecast = todays_forecast[final_cols]
 
-    historical_weather = historical_weather[final_cols]
-    # print(f"Weather data for Seattle:")
-    # print(historical_weather[['date', 'season', 'weather_code']].head(5))
-    return historical_weather, condensed
+    return historical_weather, condensed, todays_forecast
 
 # if __name__ == '__main__':
 #     weather_main()

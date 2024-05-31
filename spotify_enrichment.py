@@ -1,10 +1,11 @@
 import sys
 import json
 from scipy import stats
-import spotify
 import pandas as pd
 import numpy as np
 import time
+
+import mongodb
 
 from spotify_py_sdk import SpotifyApi, SdkConfig
 
@@ -38,6 +39,17 @@ def get_song_uri(song, artist):
     song_popularity = songs['tracks']['items'][0]['popularity']
 
     return song_uri, song_id, song_popularity    
+
+def store_music_data(season_music, weather_music):
+    # store data in mongoDB
+    mongodb.store_collection('spotify', 'season-playlists', season_music)
+    mongodb.store_collection('spotify', f'weather-playlists', weather_music)
+
+def get_weather_music(playlist_df):
+    return playlist_df[playlist_df['type'] == 'weather']
+
+def get_season_music(playlist_df):
+    return playlist_df[playlist_df['type'] == 'season']
 
 def scale_score(weather_score, track_score, is_preciptitation):
     return weather_score * track_score
@@ -136,6 +148,8 @@ def remove_outliers(playlist_data):
 
     return playlist_data
 
+from sklearn.preprocessing import LabelEncoder
+
 def transform_playlist_data(playlist_df, numerical_cols):
     # Create a new column 'is_precipitation' that is 1 if the event is 'Rain', 'Snow', 'Storm', or 'Drizzle', and 0 otherwise
     playlist_df['is_precipitation'] = playlist_df['event'].isin(['Rain', 'Snow', 'Storm', 'Drizzle']).fillna(False).astype(int)
@@ -148,6 +162,15 @@ def transform_playlist_data(playlist_df, numerical_cols):
 
     print("Applying transformations to highly skewed columns")
     playlist_df = get_all_transformations(playlist_df, numerical_cols)
+
+    # Get weather music and season music
+    playlist_df['weather_music'] = get_weather_music(playlist_df)
+    playlist_df['season_music'] = get_season_music(playlist_df)
+
+    # Convert 'season' and 'event' to numerical values
+    le = LabelEncoder()
+    playlist_df['season'] = le.fit_transform(playlist_df['season'])
+    playlist_df['event'] = le.fit_transform(playlist_df['event'])
 
     return playlist_df
 
@@ -273,6 +296,13 @@ def process_playlists(playlists):
     # Calculate t-scores for each track
     print("Calculating grouped scores")
     playlist_df = calculate_t_score(playlist_df)
+
+    return playlist_df, playlists_without_track_info, playlists_without_data
+
+def get_playlist_data():
+    # Get the playlists
+    playlists = pd.read_csv('playlists.csv')
+    playlist_df, playlists_without_track_info, playlists_without_data = process_playlists(playlists)
 
     return playlist_df, playlists_without_track_info, playlists_without_data
 

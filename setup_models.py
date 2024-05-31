@@ -21,6 +21,7 @@
 
 
 import weather
+import spotify_enrichment
 import mongodb
 import pandas as pd
 import numpy as np 
@@ -28,28 +29,54 @@ import numpy as np
 first_time = True
 
 if first_time:
-    historical_weather, condensed = weather.weather_main()
+    historical_weather, condensed, forecast = weather.weather_main()
     print("Storing weather data...")
-    weather.store_weather_data(historical_weather)
-    weather.store_weather_data(condensed)
+    weather.store_weather_data(historical_weather, "historical_raw")
+    weather.store_weather_data(condensed, "historical_summary")
     print("Weather data stored.")
     
+    print("Storing spotify data...")
+    playlist_data = spotify_enrichment.get_playlist_data()
+    
+    season_music = spotify_enrichment.get_season_music(playlist_data)
+    weather_music = spotify_enrichment.get_weather_music(playlist_data)
+    
+    spotify_enrichment.store_music_data(season_music, weather_music)
+    print("Spotify data stored.")
+
+def get_stored_weather():
+    historical_weather = weather.get_stored_weather('weather.historical_raw', 'seattle')
+    historical_summary = weather.get_stored_weather('weather.historical_summary', 'seattle')
+    return historical_weather, historical_summary
+
+def pull_forecast():
+    todays_forecast = weather.get_todays_weather()
+    return todays_forecast
+
+def store_forecast(todays_forecast):
+    weather.store_weather_data(todays_forecast, "forecast")
+    
 def get_forecast():
-    pass
+    todays_forecast = weather.get_stored_weather('weather.forecast', 'seattle')
+    return todays_forecast
 
-def store_forecast():
-    pass
+def get_todays_score(todays_forecast):
+    return todays_forecast['weather_score_weighted']
 
-def get_weather_event_score():
-    pass
+def create_model(historical_weather):
+    return weather.create_model(historical_weather)
 
-def create_model():
-    pass
+def predict_weather_event(todays_forecast, weather_model):
+    todays_forecast['weather_event'] = weather_model.predict(todays_forecast)
+    return todays_forecast
 
-def predict_weather_event():
-    pass
-
-def get_music_selection():
+def get_music_selection(todays_forecast, weather_event_score):
+    '''
+    - get the weather event score
+    - get the range of scores for that event
+    - get the songs within 2 standard deviations of the mean
+    - return the songs
+    '''
     pass
 
 def get_last_fm():
