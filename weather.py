@@ -52,38 +52,54 @@ def get_todays_score(todays_forecast):
     return todays_forecast
 
 
-def finalize_historical_weather(historical_weather):
-    # Select numerical columns once
-    numerical_cols = historical_weather.select_dtypes(include=[np.number]).columns
+# def finalize_historical_weather(historical_weather):
+#     # Select numerical columns once
+#     numerical_cols = historical_weather.select_dtypes(include=[np.number]).columns
+#     # Check for extreme values and handle them
+#     extreme_value_threshold = 1e+10
+#     if np.any(historical_weather[numerical_cols] > extreme_value_threshold):  # adjust the threshold as needed
+#         # applies a log(1 + x) transformation
+#         historical_weather[numerical_cols] = np.log1p(historical_weather[numerical_cols]) 
 
-    # Perform Yeo-Johnson transformation
-    y = historical_weather['weather_score_weighted']
-    y, fitted_lambda = yeojohnson(y, lmbda=None)
-    pt = PowerTransformer(method='yeo-johnson')
-    data = pt.fit_transform(historical_weather[numerical_cols])
-    data = pd.DataFrame(data, columns=numerical_cols)
+#     # Add a small constant to ensure there are no zero values
+#     historical_weather[numerical_cols] += 1e-3
 
-    # Standardize the data
-    sc = StandardScaler() 
-    X_std = sc.fit_transform(data) 
+#     # Apply a different transformation to handle negative values
+#     historical_weather[numerical_cols] = historical_weather[numerical_cols].apply(lambda x: np.where(x > 0, x, x**2))
 
-    # Perform PCA
-    pca = PCA(n_components = 7)
-    X_pca = pca.fit_transform(X_std)
+#     # Now apply the transformation
+#     pt = PowerTransformer(method='yeo-johnson')
+#     try:
+#         data = pt.fit_transform(historical_weather[numerical_cols])
+#     except ValueError:
+#         # If yeo-johnson fails, try box-cox transformation
+#         pt = PowerTransformer(method='box-cox')
+#         data = pt.fit_transform(historical_weather[numerical_cols])
 
-    # Get the most important features
-    n_pcs= pca.n_components_
-    most_important = [np.abs(pca.components_[i]).argmax() for i in range(n_pcs)]
-    most_important_names = [numerical_cols[most_important[i]] for i in range(n_pcs)]
+#     data = pd.DataFrame(data, columns=numerical_cols)
 
-    # Create final DataFrame
-    final_hist = data[most_important_names]
-    final_hist_pca = pca.transform(final_hist)
-    final_hist_pca_df = pd.DataFrame(final_hist_pca, columns=[f'PC{i}' for i in range(1, min(final_hist.shape)+1)])
+#     # Standardize the data
+#     sc = StandardScaler() 
+#     X_std = sc.fit_transform(data) 
 
-    # Add the independent variable to the DataFrame
-    final_hist_pca_df['description'] = historical_weather['description'].values
-    return final_hist_pca_df
+#     # Perform PCA
+#     n_components = min(X_std.shape)
+#     pca = PCA(n_components = n_components)
+#     X_pca = pca.fit_transform(X_std)
+
+#     # Get the most important features
+#     n_pcs= pca.n_components_
+#     most_important = [np.abs(pca.components_[i]).argmax() for i in range(n_pcs)]
+#     most_important_names = [numerical_cols[most_important[i]] for i in range(n_pcs)]
+
+#     # Create final DataFrame
+#     final_hist = data[most_important_names]
+#     final_hist_pca = pca.transform(final_hist)
+#     final_hist_pca_df = pd.DataFrame(final_hist_pca, columns=[f'PC{i}' for i in range(1, min(final_hist.shape)+1)])
+
+#     # Add the independent variable to the DataFrame
+#     final_hist_pca_df['description'] = historical_weather['description'].values
+#     return final_hist_pca_df
 
 def get_historical_scores(historical_weather):
     # Calculate the weather score       
@@ -135,7 +151,7 @@ def analyze_condensed_weather(historical_weather):
     return condensed.sort_values('weather_score_weighted', ascending=False)
 
 def store_weather_data(data, subject):
-    df = pd.DataFrame(data)  # Convert the dictionary to a DataFrame
+    df = pd.DataFrame(data)  # Convert the list to a DataFrame
     mongodb.store_collection(f'weather.{subject}', 'seattle', df.to_dict('records'))
     return f'weather.{subject}'
 
@@ -201,9 +217,13 @@ def weather_main():
     # get and store latest data
     print('Getting weather data for Seattle')
     historical_weather = wh.get_historical_weather(start, end)
+    
+    historical_weather = pd.DataFrame(historical_weather)
     historical_weather['season'] = pd.Series(historical_weather['date']).apply(lambda date: get_season(date.date()))
 
-    historical_weather = pd.DataFrame(historical_weather)
+    # Save the original column names
+    # original_cols = historical_weather.columns.tolist()
+    
     historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
     print(f'Getting weather codes')
     weather_codes = get_weather_codes()
@@ -213,9 +233,14 @@ def weather_main():
     joined = historical_weather.merge(weather_codes, on='weather_code', how='left')
 
     historical_weather = get_historical_scores(joined)
-    historical_weather = finalize_historical_weather(historical_weather)
+    # historical_weather = finalize_historical_weather(historical_weather)
     condensed = analyze_condensed_weather(joined)
-
+    
+    historical_weather['event'] = historical_weather['description'].apply(map_weather)
+    condensed['event'] = condensed['description'].apply(map_weather)
+    
+    final_cols = historical_weather.columns
+    
     # Get today's forecast
     print('Getting today\'s forecast')
     todays_forecast = get_forecast()
@@ -223,6 +248,8 @@ def weather_main():
     todays_forecast = pd.DataFrame(todays_forecast, index=[0])
     todays_forecast = todays_forecast.merge(weather_codes, on='weather_code', how='left')
     todays_forecast = get_todays_score(todays_forecast)
+    todays_forecast['event'] = todays_forecast['description'].apply(map_weather)
+
     # Only keep columns in final_cols that exist in todays_forecast
     final_cols = [col for col in final_cols if col in todays_forecast.columns]
     todays_forecast = todays_forecast[final_cols]

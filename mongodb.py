@@ -1,6 +1,7 @@
 import json
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import pandas as pd
 
 filename = r"D:\Backup\repos\auth.json"
 cert_file = r"D:\Backup\repos\musicalweather.pem"
@@ -16,7 +17,12 @@ def store_collection(database_name, collection_name, data):
     mongo_client = get_client()
     db = mongo_client.client[database_name]
     collection = db[collection_name]
-    collection.insert_many(data.to_dict('records'))  
+    
+    # Check if data is a DataFrame
+    if isinstance(data, pd.DataFrame):
+        data = data.to_dict('records')  # Convert DataFrame to list of dictionaries
+    collection.insert_many(data)  # data is now guaranteed to be a list of dictionaries
+    
     # https://stackoverflow.com/questions/20167194/insert-a-pandas-dataframe-into-mongodb-using-pymongo
     return db
 

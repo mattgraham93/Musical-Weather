@@ -42,8 +42,11 @@ def get_song_uri(song, artist):
 
 def store_music_data(season_music, weather_music):
     # store data in mongoDB
-    mongodb.store_collection('spotify', 'season-playlists', season_music)
-    mongodb.store_collection('spotify', f'weather-playlists', weather_music)
+    mongodb.store_collection('spotify', 'season_playlists', season_music)
+    mongodb.store_collection('spotify', 'weather_playlists', weather_music)
+    
+def get_stored_music_data(collection_name):
+    return mongodb.get_stored_data('spotify', collection_name)
 
 def get_weather_music(playlist_df):
     return playlist_df[playlist_df['type'] == 'weather']
