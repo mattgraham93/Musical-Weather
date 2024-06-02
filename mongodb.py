@@ -30,4 +30,10 @@ def get_stored_data(database_name, collection_name):
     mongo_client = get_client()
     db = mongo_client.client[database_name]
     collection = db[collection_name]
-    return list(collection.find())
+    data = list(collection.find())
+    
+    # Remove '_id' key from each dictionary
+    for item in data:
+        item.pop('_id', None)
+    
+    return data

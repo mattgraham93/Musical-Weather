@@ -16,13 +16,35 @@ from sklearn.decomposition import PCA # for PCA calculation
 from scipy.stats import yeojohnson
 from statsmodels.tsa.arima.model import ARIMA
 
+def predict_forecasted_event(forecast_model, todays_forecast):
+    # Ensure that 'date' is of datetime type
+    todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
+
+    # Set 'date' as the index of the DataFrame
+    todays_forecast.set_index('date', inplace=True)
+
+    # Use the predict method to make predictions
+    start_date = todays_forecast.index.min()
+    end_date = todays_forecast.index.max()
+    forecasted_values = forecast_model.predict(start=start_date, end=end_date)
+
+    # Add the forecasted values to the DataFrame
+    todays_forecast['forecasted_event'] = forecasted_values
+
+    return todays_forecast
 
 def create_model(historical_weather):
-    model = ARIMA(historical_weather, order=(5,1,0))
-    return model
+    # Ensure that 'date' is of datetime type
+    historical_weather['date'] = pd.to_datetime(historical_weather['date'])
 
-def get_forecast():
-    return wt.get_todays_weather()
+    # Set 'date' as the index of the DataFrame
+    historical_weather.set_index('date', inplace=True)
+
+    # Fit the ARIMA model
+    model_base = ARIMA(historical_weather['weather_score_weighted'], order=(5,1,0))
+    model_fit = model_base.fit()
+
+    return model_base, model_fit
 
 def get_todays_score(todays_forecast):
     todays_forecast['weather_score'] = todays_forecast['weather_score'].fillna(0).astype(int)
@@ -51,6 +73,34 @@ def get_todays_score(todays_forecast):
     todays_forecast.drop(columns=['base', 'good', 'bad'], inplace=True)
     return todays_forecast
 
+def get_description(x, weather_codes):
+    descriptions = weather_codes[weather_codes['weather_code'] == x]['description'].values
+    return descriptions[0] if descriptions.size > 0 else None
+
+def get_forecast():
+    todays_forecast = wt.get_todays_weather()
+    weather_codes = get_weather_codes()
+    
+    # Ensure 'weather_code' in both dataframes is of the same type
+    todays_forecast['weather_code'] = todays_forecast['weather_code'].astype(float).astype(int)
+    weather_codes['weather_code'] = weather_codes['weather_code'].astype(float).astype(int)
+    
+    todays_forecast['season'] = get_season(datetime.now())
+    
+    todays_forecast['description'] = todays_forecast['weather_code'].apply(get_description, args=(weather_codes,))
+    
+    todays_forecast = pd.DataFrame(todays_forecast, index=[0])
+    
+    # Drop the 'description' column from weather_codes dataframe before the merge
+    weather_codes = weather_codes.drop(columns='description')
+    
+    todays_forecast = todays_forecast.merge(weather_codes, on='weather_code', how='left')
+
+    todays_forecast['weather_score'] = todays_forecast['description'].apply(get_weather_score)
+    todays_forecast['event'] = todays_forecast['description'].apply(map_weather)
+    todays_forecast = get_todays_score(todays_forecast)
+
+    return todays_forecast
 
 # def finalize_historical_weather(historical_weather):
 #     # Select numerical columns once
@@ -105,6 +155,9 @@ def get_historical_scores(historical_weather):
     # Calculate the weather score       
     historical_weather['weather_score'] = historical_weather['weather_score'].fillna(0).astype(int)
 
+    # Replace 'weather_score' values of 0 with 1
+    historical_weather['weather_score'] = historical_weather['weather_score'].replace(0, 1)
+
     historical_weather['base'] = historical_weather['daylight_duration'] + historical_weather['temperature_2m_mean']
     historical_weather['good'] = historical_weather['sunshine_duration'] + historical_weather['shortwave_radiation_sum']
     
@@ -131,7 +184,7 @@ def get_historical_scores(historical_weather):
 
 def analyze_condensed_weather(historical_weather):
     condensed = pd.DataFrame(
-            historical_weather.groupby(['description', 'season']).agg(
+            historical_weather.groupby(['event', 'season']).agg(
             {'temperature_2m_max': 'mean', 
             'temperature_2m_min': 'mean', 
             'temperature_2m_mean': 'mean',
@@ -220,24 +273,17 @@ def weather_main():
     
     historical_weather = pd.DataFrame(historical_weather)
     historical_weather['season'] = pd.Series(historical_weather['date']).apply(lambda date: get_season(date.date()))
-
-    # Save the original column names
-    # original_cols = historical_weather.columns.tolist()
     
-    historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
     print(f'Getting weather codes')
     weather_codes = get_weather_codes()
-    weather_codes['weather_code'] = weather_codes['weather_code'].astype(int)
+    historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
     weather_codes.drop(columns='image', inplace=True)
+    
     print(f'Analyzing and weighing weather data')
     joined = historical_weather.merge(weather_codes, on='weather_code', how='left')
-
+    joined['event'] = joined['description'].apply(map_weather)
     historical_weather = get_historical_scores(joined)
-    # historical_weather = finalize_historical_weather(historical_weather)
     condensed = analyze_condensed_weather(joined)
-    
-    historical_weather['event'] = historical_weather['description'].apply(map_weather)
-    condensed['event'] = condensed['description'].apply(map_weather)
     
     final_cols = historical_weather.columns
     

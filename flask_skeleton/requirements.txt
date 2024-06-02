@@ -19,3 +19,5 @@ spotify_py_sdk==0.1.2
 textblob==0.18.0.post0
 urllib3==1.26.18
 uuid==1.30
+Cython==3.0.10 
+pmdarima==2.0.4

@@ -9,7 +9,7 @@ import mongodb
 
 from spotify_py_sdk import SpotifyApi, SdkConfig
 
-from sklearn.preprocessing import StandardScaler, PowerTransformer, QuantileTransformer
+from sklearn.preprocessing import StandardScaler, PowerTransformer, QuantileTransformer, LabelEncoder
 from scipy.stats import skew
 
 from dotenv import load_dotenv
@@ -41,18 +41,25 @@ def get_song_uri(song, artist):
     return song_uri, song_id, song_popularity    
 
 def store_music_data(season_music, weather_music):
-    # store data in mongoDB
-    mongodb.store_collection('spotify', 'season_playlists', season_music)
-    mongodb.store_collection('spotify', 'weather_playlists', weather_music)
-    
+    # Check if season_music and weather_music are non-empty and can be converted to a list of dictionaries
+    if isinstance(season_music, pd.DataFrame) and not season_music.empty:
+        mongodb.store_collection('spotify', 'season_playlists', season_music)
+    else:
+        print("season_music is either not a DataFrame or is empty")
+
+    if isinstance(weather_music, pd.DataFrame) and not weather_music.empty:
+        mongodb.store_collection('spotify', 'weather_playlists', weather_music)
+    else:
+        print("weather_music is either not a DataFrame or is empty")
+            
 def get_stored_music_data(collection_name):
     return mongodb.get_stored_data('spotify', collection_name)
 
 def get_weather_music(playlist_df):
-    return playlist_df[playlist_df['type'] == 'weather']
+    return playlist_df[playlist_df['type'] == 'Weather']
 
 def get_season_music(playlist_df):
-    return playlist_df[playlist_df['type'] == 'season']
+    return playlist_df[playlist_df['type'] == 'Season']
 
 def scale_score(weather_score, track_score, is_preciptitation):
     return weather_score * track_score
@@ -151,7 +158,10 @@ def remove_outliers(playlist_data):
 
     return playlist_data
 
-from sklearn.preprocessing import LabelEncoder
+def get_event_label_encoder(playlist_df):
+    le_event = LabelEncoder()
+    playlist_df['event_le'] = le_event.fit_transform(playlist_df['event'])
+    return playlist_df, le_event
 
 def transform_playlist_data(playlist_df, numerical_cols):
     # Create a new column 'is_precipitation' that is 1 if the event is 'Rain', 'Snow', 'Storm', or 'Drizzle', and 0 otherwise
@@ -167,15 +177,12 @@ def transform_playlist_data(playlist_df, numerical_cols):
     playlist_df = get_all_transformations(playlist_df, numerical_cols)
 
     # Get weather music and season music
-    playlist_df['weather_music'] = get_weather_music(playlist_df)
-    playlist_df['season_music'] = get_season_music(playlist_df)
-
-    # Convert 'season' and 'event' to numerical values
-    le = LabelEncoder()
-    playlist_df['season'] = le.fit_transform(playlist_df['season'])
-    playlist_df['event'] = le.fit_transform(playlist_df['event'])
-
-    return playlist_df
+    # weather_music = get_weather_music(playlist_df)
+    # season_music = get_season_music(playlist_df)
+    
+    playlist_df, le_event = get_event_label_encoder(playlist_df)
+    
+    return playlist_df, le_event
 
 def calculate_base_score(playlist_data):
     playlist_data['base_score'] = playlist_data['duration_ms'] / playlist_data['tempo']
@@ -293,21 +300,24 @@ def process_playlists(playlists):
 
     print("Enhancing music data")
     # Calculate base scores
-    playlist_df = transform_playlist_data(playlist_df, numerical_cols)
+    playlist_df, event_le = transform_playlist_data(playlist_df, numerical_cols)
     playlist_df = calculate_base_score(playlist_df)
 
     # Calculate t-scores for each track
     print("Calculating grouped scores")
     playlist_df = calculate_t_score(playlist_df)
 
-    return playlist_df, playlists_without_track_info, playlists_without_data
+    return playlist_df, playlists_without_track_info, playlists_without_data, event_le
 
 def get_playlist_data():
     # Get the playlists
     playlists = pd.read_csv('playlists.csv')
-    playlist_df, playlists_without_track_info, playlists_without_data = process_playlists(playlists)
+    playlist_df, playlists_without_track_info, playlists_without_data, le_event = process_playlists(playlists)
 
-    return playlist_df, playlists_without_track_info, playlists_without_data
+    season_music = get_season_music(playlist_df)
+    weather_music = get_weather_music(playlist_df)
+    
+    return playlist_df, season_music, weather_music, playlists_without_track_info, playlists_without_data, le_event
 
 # def spotify_main():
 #     playlist_id = '37i9dQZF1DX4aYNO8X5RpR'  # replace with your playlist id
