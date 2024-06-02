@@ -60,7 +60,7 @@ def get_stored_weather():
         historical_summary = historical_summary.drop(columns=['ObjectId'])
     return historical_weather, historical_summary
 
-def get_forecast():
+def get_forecast(historical_weather):
     todays_forecast = weather.get_stored_weather('weather.forecast', 'seattle')
     
     # Convert todays_forecast to a DataFrame if it's a list
@@ -77,6 +77,10 @@ def get_forecast():
     if todays_forecast['date'][0].date() != datetime.today().date():
         todays_forecast = pull_forecast()
         weather.store_weather_data(todays_forecast, "forecast")
+
+    # Only keep columns that exist in both todays_forecast and historical_weather
+    common_columns = set(todays_forecast.columns).intersection(set(historical_weather.columns))
+    todays_forecast = todays_forecast[list(common_columns)]
     
     return todays_forecast
 
@@ -90,28 +94,32 @@ def create_weather_model(historical_weather):
     return weather.create_model(historical_weather)
 
 def predict_weather_event(todays_forecast, weather_model):
-    todays_forecast['weather_event'] = weather.predict_forecasted_event(weather_model, todays_forecast)
-    return todays_forecast
+    return weather.predict_forecasted_event(todays_forecast, weather_model)
 
 def select_weather_songs(weather_score, range_width, weather_music):
     lower_bound = weather_score - range_width
     upper_bound = weather_score + range_width
-    selected_songs = weather_music[(weather_music['score'] >= lower_bound) & (weather_music['score'] <= upper_bound)]
+    selected_songs = weather_music[(weather_music['average_t_score'] >= lower_bound) & (weather_music['average_t_score'] <= upper_bound)]
     selected_songs = selected_songs.drop_duplicates(subset='track_id', keep='last')
     return selected_songs
 
-def get_music_selection(todays_forecast, weather_summary, weather_event_score):
-    todays_score = todays_forecast['weather_score_weighted'][0]
-    todays_season = weather_summary[0]['season']
+def get_music_selection(todays_forecast, historical_weather, todays_t_score):
     
-    weather_music = pd.DataFrame(spotify_enrichment.get_stored_music('spotify.weather_music'))
-    '''
-    - get the weather event score
-    - get the range of scores for that event
-    - get the songs within 2 standard deviations of the mean
-    - return the songs
-    '''
-    pass
+    todays_event = todays_forecast['event'].iloc[0]
+
+    # Filter historical_weather for rows where 'event' matches todays_event
+    matching_historical_weather = historical_weather[historical_weather['event'] == todays_event]
+
+    # Calculate mean and standard deviation of 'average_t_score' for the matching rows
+    weather_mean = matching_historical_weather['average_t_score'].mean()
+    weather_std = matching_historical_weather['average_t_score'].std()
+    
+    weather_music = pd.DataFrame(spotify_enrichment.get_stored_music_data('weather_playlists'))
+    weather_music = spotify_enrichment.calculate_average_t_score(weather_music)
+    
+    selected_songs = select_weather_songs(todays_t_score, 2 * weather_std, weather_music)
+    
+    return weather_std, weather_music, selected_songs
 
 def get_last_fm():
     pass
@@ -126,17 +134,16 @@ def main():
     # setup_first_time(False) # set to True if first time
     
     historical_weather, historical_summary = get_stored_weather()
-    todays_forecast = get_forecast()
-        
-    model_base, model_fit = create_weather_model(historical_weather)
+    todays_forecast = get_forecast(historical_weather)
     
-    # todays_forecast = predict_weather_event(todays_forecast, weather_model)
+    todays_score = get_todays_score(todays_forecast) # for debugging    
     
-    # store_forecast(todays_forecast)
+    model_base, model_fit = create_weather_model(historical_weather) # use model_base for debugging
     
-    todays_score = get_todays_score(todays_forecast)
+    todays_forecast = predict_weather_event(todays_forecast, model_fit) 
+    todays_t_score = todays_forecast['average_t_score'][0]
     
-    # get_music_selection(todays_forecast, todays_score)
+    get_music_selection(todays_forecast, historical_weather, todays_t_score)
     
     return todays_score, historical_summary
 

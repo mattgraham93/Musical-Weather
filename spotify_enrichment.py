@@ -64,16 +64,33 @@ def get_season_music(playlist_df):
 def scale_score(weather_score, track_score, is_preciptitation):
     return weather_score * track_score
 
-def calculate_t_score(playlist_df):
-    # Group by event and track_id, and calculate mean score
-    mean_scores = playlist_df.groupby(['event', 'track_id'])['score'].mean()
+def calculate_average_t_score(playlist_df):
+    # Initialize an empty DataFrame to store the t-scores
+    t_scores_df = pd.DataFrame()
 
-    # Calculate t-score for each track in relation to its event
-    playlist_df['t_score'] = playlist_df.apply(lambda row: stats.ttest_ind(
-        [row['score']],
-        mean_scores[row['event']].tolist(),
-        equal_var=False
-    )[0] if len(mean_scores[row['event']].tolist()) > 1 else 0, axis=1)
+    # Select numerical columns only
+    numerical_columns = playlist_df.select_dtypes(include=[np.number]).columns
+
+    # Exclude columns that are not required for t-score calculation
+    numerical_columns = numerical_columns.drop(['is_precipitation', 'event_le', 'score', 't_score'])
+
+    for event, group in playlist_df.groupby('event'):
+        # If the group has less than two rows, skip this iteration
+        if len(group) < 2:
+            continue
+
+        # Get the mean and standard deviation of all columns
+        mean_df = pd.DataFrame(group.mean(numeric_only=True)).T
+        std_df = pd.DataFrame(group.std(numeric_only=True)).T
+
+        # Now calculate the t-score for each song in the group
+        t_scores = (group[numerical_columns] - mean_df[numerical_columns].values) / (std_df[numerical_columns].values + 1e-7)
+
+        t_scores_df = pd.concat([t_scores_df, t_scores], ignore_index=True)
+
+    # Reset the index of playlist_df before assigning the average t-scores
+    playlist_df = playlist_df.reset_index(drop=True)
+    playlist_df['average_t_score'] = t_scores_df.mean(axis=1)
 
     return playlist_df
 

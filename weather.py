@@ -16,20 +16,56 @@ from sklearn.decomposition import PCA # for PCA calculation
 from scipy.stats import yeojohnson
 from statsmodels.tsa.arima.model import ARIMA
 
-def predict_forecasted_event(forecast_model, todays_forecast):
+from statsmodels.tsa.api import VAR
+
+# def predict_forecasted_event(todays_forecast, forecast_model):
+#     # Ensure that 'date' is of datetime type
+#     if 'date' in todays_forecast.columns:
+#         todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
+
+#         # Set 'date' as the index of the DataFrame
+#         todays_forecast.set_index('date', inplace=True)
+
+#     # Convert all columns to numeric data types, if possible
+#     for col in todays_forecast.columns:
+#         todays_forecast[col] = pd.to_numeric(todays_forecast[col], errors='coerce')
+
+#     # Drop any columns that still have non-numeric data types
+#     todays_forecast = todays_forecast.select_dtypes(include=[np.number])
+
+#     # Fit the VAR model
+#     model = VAR(todays_forecast)
+#     fitted_model = model.fit()
+
+#     # Make predictions
+#     start_date = todays_forecast.index.min()
+#     end_date = todays_forecast.index.max()
+#     forecasted_values = fitted_model.forecast(fitted_model.y, steps=len(todays_forecast))
+
+#     # Add the forecasted values to the DataFrame
+#     todays_forecast['forecasted_event'] = forecasted_values
+
+#     return todays_forecast
+
+def predict_forecasted_event(todays_forecast, forecast_model):
     # Ensure that 'date' is of datetime type
-    todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
+    if 'date' in todays_forecast.columns:
+        todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
 
-    # Set 'date' as the index of the DataFrame
-    todays_forecast.set_index('date', inplace=True)
+        # Set 'date' as the index of the DataFrame
+        todays_forecast.set_index('date', inplace=True)
 
-    # Use the predict method to make predictions
+    # Make predictions
     start_date = todays_forecast.index.min()
     end_date = todays_forecast.index.max()
     forecasted_values = forecast_model.predict(start=start_date, end=end_date)
 
     # Add the forecasted values to the DataFrame
     todays_forecast['forecasted_event'] = forecasted_values
+
+    # If 'forecasted_event' is null, set it to the 'event'
+    if 'event' in todays_forecast.columns:
+        todays_forecast['forecasted_event'].fillna(todays_forecast['event'], inplace=True)
 
     return todays_forecast
 
@@ -46,7 +82,7 @@ def create_model(historical_weather):
 
     return model_base, model_fit
 
-def calculate_average_t_score(todays_forecast, historical_summary):
+def calculate_average_t_score(todays_forecast, historical_raw):
     # Initialize an empty DataFrame to store the t-scores
     t_scores_df = pd.DataFrame()
 
@@ -58,11 +94,11 @@ def calculate_average_t_score(todays_forecast, historical_summary):
         season = row['season']
 
         # Filter the DataFrame based on the event and season
-        filtered_df = historical_summary[(historical_summary['event'] == event) & (historical_summary['season'] == season)]
+        filtered_df = historical_raw[(historical_raw['event'] == event) & (historical_raw['season'] == season)]
 
         # If the filtered dataframe is empty or has less than two rows, get the average for the season only
         if filtered_df.empty or len(filtered_df) < 2:
-            filtered_df = historical_summary[historical_summary['season'] == season]
+            filtered_df = historical_raw[historical_raw['season'] == season]
             if filtered_df.empty or len(filtered_df) < 2:
                 continue
 
@@ -132,13 +168,13 @@ def get_forecast():
     todays_forecast['event'] = todays_forecast['description'].apply(map_weather)
     todays_forecast = get_todays_score(todays_forecast)  
     
-    historical_summary = pd.DataFrame(get_stored_weather('weather.historical_summary', 'seattle'))
+    historical_weather = pd.DataFrame(get_stored_weather('weather.historical_raw', 'seattle'))
     
-    if historical_summary.empty:
+    if historical_weather.empty:
         print("No historical summary data available. Setting t-score to 0...")
         todays_forecast['average_t_score'] = 0
     else:
-        todays_forecast = calculate_average_t_score(todays_forecast, historical_summary)
+        todays_forecast = calculate_average_t_score(todays_forecast, historical_weather)
 
     return todays_forecast
 
@@ -280,7 +316,7 @@ def weather_main():
     historical_weather = get_historical_scores(joined)
     condensed = analyze_condensed_weather(joined)
     
-    historical_weather = calculate_average_t_score(historical_weather, condensed)
+    historical_weather = calculate_average_t_score(historical_weather, historical_weather)
     
     final_cols = historical_weather.columns
     
