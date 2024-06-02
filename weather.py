@@ -50,6 +50,9 @@ def calculate_average_t_score(todays_forecast, historical_summary):
     # Initialize an empty DataFrame to store the t-scores
     t_scores_df = pd.DataFrame()
 
+    # Select numerical columns only
+    numerical_columns = todays_forecast.select_dtypes(include=[np.number]).columns
+
     for index, row in todays_forecast.iterrows():
         event = row['event']
         season = row['season']
@@ -57,27 +60,27 @@ def calculate_average_t_score(todays_forecast, historical_summary):
         # Filter the DataFrame based on the event and season
         filtered_df = historical_summary[(historical_summary['event'] == event) & (historical_summary['season'] == season)]
 
-        # If the filtered dataframe is empty, get the average for the season only
-        if filtered_df.empty:
+        # If the filtered dataframe is empty or has less than two rows, get the average for the season only
+        if filtered_df.empty or len(filtered_df) < 2:
             filtered_df = historical_summary[historical_summary['season'] == season]
-            if filtered_df.empty:
+            if filtered_df.empty or len(filtered_df) < 2:
                 continue
 
         # Get the mean and standard deviation of all columns
-        mean_df = pd.DataFrame(filtered_df.mean()).T
-        std_df = pd.DataFrame(filtered_df.std()).T
-
-        # Select numerical columns only
-        numerical_columns = row.select_dtypes(include=[np.number]).index
+        mean_df = pd.DataFrame(filtered_df.mean(numeric_only=True)).T
+        std_df = pd.DataFrame(filtered_df.std(numeric_only=True)).T
 
         # Only keep columns that are present in mean_df and std_df
         numerical_columns = [col for col in numerical_columns if col in mean_df.columns and col in std_df.columns]
 
         # Now calculate the t-score
-        t_scores = (row[numerical_columns] - mean_df[numerical_columns].squeeze()) / std_df[numerical_columns].squeeze()
-        t_scores_df = t_scores_df.append(t_scores, ignore_index=True)
+        t_scores = (row[numerical_columns] - mean_df[numerical_columns].squeeze()) / (std_df[numerical_columns].squeeze() + 1e-7)
 
-    todays_forecast['average_t_score'] = t_scores_df.sum(axis=1) / len(numerical_columns)
+        t_scores_df = pd.concat([t_scores_df, t_scores.to_frame().T], ignore_index=True)
+
+    # Reset the index of todays_forecast before assigning the average t-scores
+    todays_forecast = todays_forecast.reset_index(drop=True)
+    todays_forecast['average_t_score'] = t_scores_df.mean(axis=1)
 
     return todays_forecast
 
@@ -131,7 +134,11 @@ def get_forecast():
     
     historical_summary = pd.DataFrame(get_stored_weather('weather.historical_summary', 'seattle'))
     
-    todays_forecast = calculate_average_t_score(todays_forecast, historical_summary)
+    if historical_summary.empty:
+        print("No historical summary data available. Setting t-score to 0...")
+        todays_forecast['average_t_score'] = 0
+    else:
+        todays_forecast = calculate_average_t_score(todays_forecast, historical_summary)
 
     return todays_forecast
 
@@ -220,7 +227,7 @@ def map_weather(description):
         return 'Cloud'
     elif 'Snow' in description:
         return 'Snow'
-    elif 'Rain' in description or 'Heavy Drizzle' in description:
+    elif 'Rain' in description or 'Heavy Drizzle' or 'Light Showers' in description:
         return 'Rain'
     elif 'Drizzle' in description:
         return 'Drizzle'
@@ -273,7 +280,7 @@ def weather_main():
     historical_weather = get_historical_scores(joined)
     condensed = analyze_condensed_weather(joined)
     
-    historical_weather['average_t_score'] = calculate_average_t_score(historical_weather, condensed)
+    historical_weather = calculate_average_t_score(historical_weather, condensed)
     
     final_cols = historical_weather.columns
     

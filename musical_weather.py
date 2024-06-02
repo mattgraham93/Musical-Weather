@@ -49,8 +49,6 @@ def setup_first_time(is_first_time):
 
 def pull_forecast():
     todays_forecast = weather.get_forecast()
-    if 'ObjectId' in todays_forecast.columns:
-        todays_forecast = todays_forecast.drop(columns=['ObjectId'])
     return todays_forecast
 
 def get_stored_weather():
@@ -62,33 +60,28 @@ def get_stored_weather():
         historical_summary = historical_summary.drop(columns=['ObjectId'])
     return historical_weather, historical_summary
 
-def store_forecast(todays_forecast):
-    weather.store_weather_data(todays_forecast, "forecast")
-
 def get_forecast():
     todays_forecast = weather.get_stored_weather('weather.forecast', 'seattle')
-    todays_forecast = pd.DataFrame(todays_forecast)
     
-    # If the DataFrame is empty, pull a new forecast and store it
-    if todays_forecast.empty:
-        new_forecast = pull_forecast()
-        weather.store_weather_data(new_forecast, 'forecast')
-        todays_forecast = new_forecast
-    else:
-        if 'ObjectId' in todays_forecast.columns:
-            todays_forecast = todays_forecast.drop(columns=['ObjectId'])
-        
-        # Convert 'date' column to datetime
-        todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
-        
-        # Check if the latest date in the forecast is old
-        if todays_forecast['date'].max() < datetime.today():
-            # Pull new forecast and store in the database
-            new_forecast = pull_forecast()
-            weather.store_weather_data(new_forecast, 'forecast')
-            todays_forecast = new_forecast
+    # Convert todays_forecast to a DataFrame if it's a list
+    if isinstance(todays_forecast, list):
+        todays_forecast = pd.DataFrame(todays_forecast)
 
+    if 'ObjectId' in todays_forecast.columns:
+        todays_forecast = todays_forecast.drop(columns=['ObjectId'])
+
+    if todays_forecast.empty:
+        todays_forecast = pull_forecast()
+        weather.store_weather_data(todays_forecast, "forecast")
+        
+    if todays_forecast['date'][0].date() != datetime.today().date():
+        todays_forecast = pull_forecast()
+        weather.store_weather_data(todays_forecast, "forecast")
+    
     return todays_forecast
+
+def store_forecast(todays_forecast):
+    weather.store_weather_data(todays_forecast, "forecast")
 
 def get_todays_score(todays_forecast):
     return todays_forecast['weather_score_weighted'][0]
