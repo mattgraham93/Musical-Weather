@@ -143,7 +143,7 @@ def main():
     todays_forecast = predict_weather_event(todays_forecast, model_fit) 
     todays_t_score = todays_forecast['average_t_score'][0]
     
-    get_music_selection(todays_forecast, historical_weather, todays_t_score)
+    todays_songs = get_music_selection(todays_forecast, historical_weather, todays_t_score)
     
-    return todays_score, historical_summary
+    return todays_songs
 
