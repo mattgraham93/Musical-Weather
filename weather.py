@@ -46,6 +46,41 @@ def create_model(historical_weather):
 
     return model_base, model_fit
 
+def calculate_average_t_score(todays_forecast, historical_summary):
+    # Initialize an empty DataFrame to store the t-scores
+    t_scores_df = pd.DataFrame()
+
+    for index, row in todays_forecast.iterrows():
+        event = row['event']
+        season = row['season']
+
+        # Filter the DataFrame based on the event and season
+        filtered_df = historical_summary[(historical_summary['event'] == event) & (historical_summary['season'] == season)]
+
+        # If the filtered dataframe is empty, get the average for the season only
+        if filtered_df.empty:
+            filtered_df = historical_summary[historical_summary['season'] == season]
+            if filtered_df.empty:
+                continue
+
+        # Get the mean and standard deviation of all columns
+        mean_df = pd.DataFrame(filtered_df.mean()).T
+        std_df = pd.DataFrame(filtered_df.std()).T
+
+        # Select numerical columns only
+        numerical_columns = row.select_dtypes(include=[np.number]).index
+
+        # Only keep columns that are present in mean_df and std_df
+        numerical_columns = [col for col in numerical_columns if col in mean_df.columns and col in std_df.columns]
+
+        # Now calculate the t-score
+        t_scores = (row[numerical_columns] - mean_df[numerical_columns].squeeze()) / std_df[numerical_columns].squeeze()
+        t_scores_df = t_scores_df.append(t_scores, ignore_index=True)
+
+    todays_forecast['average_t_score'] = t_scores_df.sum(axis=1) / len(numerical_columns)
+
+    return todays_forecast
+
 def get_todays_score(todays_forecast):
     todays_forecast['weather_score'] = todays_forecast['weather_score'].fillna(0).astype(int)
 
@@ -87,69 +122,18 @@ def get_forecast():
     
     todays_forecast['season'] = get_season(datetime.now())
     
-    todays_forecast['description'] = todays_forecast['weather_code'].apply(get_description, args=(weather_codes,))
-    
     todays_forecast = pd.DataFrame(todays_forecast, index=[0])
-    
-    # Drop the 'description' column from weather_codes dataframe before the merge
-    weather_codes = weather_codes.drop(columns='description')
-    
     todays_forecast = todays_forecast.merge(weather_codes, on='weather_code', how='left')
 
     todays_forecast['weather_score'] = todays_forecast['description'].apply(get_weather_score)
     todays_forecast['event'] = todays_forecast['description'].apply(map_weather)
-    todays_forecast = get_todays_score(todays_forecast)
+    todays_forecast = get_todays_score(todays_forecast)  
+    
+    historical_summary = pd.DataFrame(get_stored_weather('weather.historical_summary', 'seattle'))
+    
+    todays_forecast = calculate_average_t_score(todays_forecast, historical_summary)
 
     return todays_forecast
-
-# def finalize_historical_weather(historical_weather):
-#     # Select numerical columns once
-#     numerical_cols = historical_weather.select_dtypes(include=[np.number]).columns
-#     # Check for extreme values and handle them
-#     extreme_value_threshold = 1e+10
-#     if np.any(historical_weather[numerical_cols] > extreme_value_threshold):  # adjust the threshold as needed
-#         # applies a log(1 + x) transformation
-#         historical_weather[numerical_cols] = np.log1p(historical_weather[numerical_cols]) 
-
-#     # Add a small constant to ensure there are no zero values
-#     historical_weather[numerical_cols] += 1e-3
-
-#     # Apply a different transformation to handle negative values
-#     historical_weather[numerical_cols] = historical_weather[numerical_cols].apply(lambda x: np.where(x > 0, x, x**2))
-
-#     # Now apply the transformation
-#     pt = PowerTransformer(method='yeo-johnson')
-#     try:
-#         data = pt.fit_transform(historical_weather[numerical_cols])
-#     except ValueError:
-#         # If yeo-johnson fails, try box-cox transformation
-#         pt = PowerTransformer(method='box-cox')
-#         data = pt.fit_transform(historical_weather[numerical_cols])
-
-#     data = pd.DataFrame(data, columns=numerical_cols)
-
-#     # Standardize the data
-#     sc = StandardScaler() 
-#     X_std = sc.fit_transform(data) 
-
-#     # Perform PCA
-#     n_components = min(X_std.shape)
-#     pca = PCA(n_components = n_components)
-#     X_pca = pca.fit_transform(X_std)
-
-#     # Get the most important features
-#     n_pcs= pca.n_components_
-#     most_important = [np.abs(pca.components_[i]).argmax() for i in range(n_pcs)]
-#     most_important_names = [numerical_cols[most_important[i]] for i in range(n_pcs)]
-
-#     # Create final DataFrame
-#     final_hist = data[most_important_names]
-#     final_hist_pca = pca.transform(final_hist)
-#     final_hist_pca_df = pd.DataFrame(final_hist_pca, columns=[f'PC{i}' for i in range(1, min(final_hist.shape)+1)])
-
-#     # Add the independent variable to the DataFrame
-#     final_hist_pca_df['description'] = historical_weather['description'].values
-#     return final_hist_pca_df
 
 def get_historical_scores(historical_weather):
     # Calculate the weather score       
@@ -273,28 +257,29 @@ def weather_main():
     
     historical_weather = pd.DataFrame(historical_weather)
     historical_weather['season'] = pd.Series(historical_weather['date']).apply(lambda date: get_season(date.date()))
-    
+    # Fill NA/NaN values with a specific value, e.g., -1
+    historical_weather['weather_code'] = historical_weather['weather_code'].fillna(1)
     print(f'Getting weather codes')
     weather_codes = get_weather_codes()
-    historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
     weather_codes.drop(columns='image', inplace=True)
     
+    # Ensure 'weather_code' in both dataframes is of the same type
+    historical_weather['weather_code'] = historical_weather['weather_code'].astype(int)
+    weather_codes['weather_code'] = weather_codes['weather_code'].astype(int)
+
     print(f'Analyzing and weighing weather data')
     joined = historical_weather.merge(weather_codes, on='weather_code', how='left')
     joined['event'] = joined['description'].apply(map_weather)
     historical_weather = get_historical_scores(joined)
     condensed = analyze_condensed_weather(joined)
     
+    historical_weather['average_t_score'] = calculate_average_t_score(historical_weather, condensed)
+    
     final_cols = historical_weather.columns
     
     # Get today's forecast
     print('Getting today\'s forecast')
     todays_forecast = get_forecast()
-    todays_forecast['season'] = get_season(today)
-    todays_forecast = pd.DataFrame(todays_forecast, index=[0])
-    todays_forecast = todays_forecast.merge(weather_codes, on='weather_code', how='left')
-    todays_forecast = get_todays_score(todays_forecast)
-    todays_forecast['event'] = todays_forecast['description'].apply(map_weather)
 
     # Only keep columns in final_cols that exist in todays_forecast
     final_cols = [col for col in final_cols if col in todays_forecast.columns]
@@ -304,3 +289,53 @@ def weather_main():
 
 # if __name__ == '__main__':
 #     weather_main()
+
+
+# def finalize_historical_weather(historical_weather):
+#     # Select numerical columns once
+#     numerical_cols = historical_weather.select_dtypes(include=[np.number]).columns
+#     # Check for extreme values and handle them
+#     extreme_value_threshold = 1e+10
+#     if np.any(historical_weather[numerical_cols] > extreme_value_threshold):  # adjust the threshold as needed
+#         # applies a log(1 + x) transformation
+#         historical_weather[numerical_cols] = np.log1p(historical_weather[numerical_cols]) 
+
+#     # Add a small constant to ensure there are no zero values
+#     historical_weather[numerical_cols] += 1e-3
+
+#     # Apply a different transformation to handle negative values
+#     historical_weather[numerical_cols] = historical_weather[numerical_cols].apply(lambda x: np.where(x > 0, x, x**2))
+
+#     # Now apply the transformation
+#     pt = PowerTransformer(method='yeo-johnson')
+#     try:
+#         data = pt.fit_transform(historical_weather[numerical_cols])
+#     except ValueError:
+#         # If yeo-johnson fails, try box-cox transformation
+#         pt = PowerTransformer(method='box-cox')
+#         data = pt.fit_transform(historical_weather[numerical_cols])
+
+#     data = pd.DataFrame(data, columns=numerical_cols)
+
+#     # Standardize the data
+#     sc = StandardScaler() 
+#     X_std = sc.fit_transform(data) 
+
+#     # Perform PCA
+#     n_components = min(X_std.shape)
+#     pca = PCA(n_components = n_components)
+#     X_pca = pca.fit_transform(X_std)
+
+#     # Get the most important features
+#     n_pcs= pca.n_components_
+#     most_important = [np.abs(pca.components_[i]).argmax() for i in range(n_pcs)]
+#     most_important_names = [numerical_cols[most_important[i]] for i in range(n_pcs)]
+
+#     # Create final DataFrame
+#     final_hist = data[most_important_names]
+#     final_hist_pca = pca.transform(final_hist)
+#     final_hist_pca_df = pd.DataFrame(final_hist_pca, columns=[f'PC{i}' for i in range(1, min(final_hist.shape)+1)])
+
+#     # Add the independent variable to the DataFrame
+#     final_hist_pca_df['description'] = historical_weather['description'].values
+#     return final_hist_pca_df
