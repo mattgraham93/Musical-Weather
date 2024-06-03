@@ -322,7 +322,7 @@ def process_playlists(playlists):
 
     # Calculate t-scores for each track
     print("Calculating grouped scores")
-    playlist_df = calculate_t_score(playlist_df)
+    playlist_df = calculate_average_t_score(playlist_df)
 
     return playlist_df, playlists_without_track_info, playlists_without_data, event_le
 

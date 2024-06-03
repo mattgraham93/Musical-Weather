@@ -4,15 +4,11 @@
     - if first time, store the data in a database -- done
     - create ability to get forecast data -- done
     - store the forecast data for that day -- done
-    
-    - observe how the weather event scores within its t-scores
-    
-    - create model (DONE) and predict weather event
-    
-    - return the results to the music algorithm
-    - with the weather event, get range of scores for that event in relation to how it scores in the music algorithm (t-score)
-    
-    - return selection of songs within 2 standard deviations of the mean weather event score
+    - observe how the weather event scores within its t-scores -- done
+    - create model (DONE) and predict weather event - done
+    - return the results to the music algorithm - done
+    - with the weather event, get range of scores for that event in relation to how it scores in the music algorithm (t-score) - done
+    - return selection of songs within 2 standard deviations of the mean weather event score - done
     
     nice to haves:
     - stuff from last.fm (seattle stuff)
@@ -20,10 +16,8 @@
     - ability to select a city
 '''
 
-
 import weather
 import spotify_enrichment
-import mongodb
 import pandas as pd
 import numpy as np 
 from datetime import datetime
@@ -96,30 +90,37 @@ def create_weather_model(historical_weather):
 def predict_weather_event(todays_forecast, weather_model):
     return weather.predict_forecasted_event(todays_forecast, weather_model)
 
-def select_weather_songs(weather_score, range_width, weather_music):
+def select_songs(weather_score, range_width, track_df):
     lower_bound = weather_score - range_width
     upper_bound = weather_score + range_width
-    selected_songs = weather_music[(weather_music['average_t_score'] >= lower_bound) & (weather_music['average_t_score'] <= upper_bound)]
+    selected_songs = track_df[(track_df['average_t_score'] >= lower_bound) & (track_df['average_t_score'] <= upper_bound)]
     selected_songs = selected_songs.drop_duplicates(subset='track_id', keep='last')
     return selected_songs
 
-def get_music_selection(todays_forecast, historical_weather, todays_t_score):
+def get_music_selection(todays_forecast, historical_weather, todays_t_score, music_type):
     
-    todays_event = todays_forecast['event'].iloc[0]
+    if music_type == 'season':
+        todays_event = todays_forecast['season'].iloc[0].lower()
+        matching_column = 'season'
+    else:
+        todays_event = todays_forecast['event'].iloc[0].lower()
+        matching_column = 'event'
 
-    # Filter historical_weather for rows where 'event' matches todays_event
-    matching_historical_weather = historical_weather[historical_weather['event'] == todays_event]
+    # Filter historical_weather for rows where 'event' or 'season' matches todays_event
+    matching_historical_weather = historical_weather[historical_weather[matching_column].str.lower() == todays_event]
 
     # Calculate mean and standard deviation of 'average_t_score' for the matching rows
-    weather_mean = matching_historical_weather['average_t_score'].mean()
     weather_std = matching_historical_weather['average_t_score'].std()
     
-    weather_music = pd.DataFrame(spotify_enrichment.get_stored_music_data('weather_playlists'))
-    weather_music = spotify_enrichment.calculate_average_t_score(weather_music)
+    music_data = pd.DataFrame(spotify_enrichment.get_stored_music_data(f'{music_type}_playlists'))
+    music_data = spotify_enrichment.calculate_average_t_score(music_data)
+
+    # Filter music_data for rows where 'event' or 'season' matches todays_event
+    todays_music_data = music_data[music_data['event'].str.lower() == todays_event]
     
-    selected_songs = select_weather_songs(todays_t_score, 2 * weather_std, weather_music)
+    selected_songs = select_songs(todays_t_score, weather_std, todays_music_data)
     
-    return weather_std, weather_music, selected_songs
+    return weather_std, music_data, selected_songs
 
 def get_last_fm():
     pass
@@ -143,7 +144,8 @@ def main():
     todays_forecast = predict_weather_event(todays_forecast, model_fit) 
     todays_t_score = todays_forecast['average_t_score'][0]
     
-    todays_songs = get_music_selection(todays_forecast, historical_weather, todays_t_score)
+    weather_std, weather_music, selected_songs_weather = get_music_selection(todays_forecast, historical_weather, todays_t_score, 'weather')
+    season_std, season_music, selected_songs_season = get_music_selection(todays_forecast, historical_weather, todays_t_score, 'season')
     
-    return todays_songs
+    return selected_songs_weather, selected_songs_season
 
