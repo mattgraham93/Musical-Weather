@@ -16,10 +16,8 @@
     - ability to select a city
 '''
 
-import weather
-import spotify_enrichment
+from engine import spotify_enrichment, weather
 import pandas as pd
-import numpy as np 
 from datetime import datetime
 
 
@@ -123,12 +121,6 @@ def get_music_selection(todays_forecast, historical_weather, todays_t_score, mus
     return weather_std, music_data, selected_songs
 
 def get_last_fm():
-    pass
-
-def get_season():
-    pass
-
-def get_city():
     pass
 
 def main():

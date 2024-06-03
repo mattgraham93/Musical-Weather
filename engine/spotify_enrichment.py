@@ -328,7 +328,7 @@ def process_playlists(playlists):
 
 def get_playlist_data():
     # Get the playlists
-    playlists = pd.read_csv('playlists.csv')
+    playlists = pd.read_csv('../playlists.csv')
     playlist_df, playlists_without_track_info, playlists_without_data, le_event = process_playlists(playlists)
 
     season_music = get_season_music(playlist_df)
