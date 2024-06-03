@@ -15,6 +15,8 @@
     - anything outside of weather events (seasons)
     - ability to select a city
 '''
+import sys
+sys.path.insert(0, '..')
 
 from engine import spotify_enrichment, weather
 import pandas as pd

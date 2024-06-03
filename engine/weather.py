@@ -5,6 +5,10 @@ from urllib.request import urlopen
 import pandas as pd
 import numpy as np
 from engine import senitment_analysis as sa, mongodb
+import sys
+sys.path.insert(0, '..')
+
+from engine import mongodb
 from weather_files import weather_today as wt, weather_historical as wh
 from datetime import datetime
 
