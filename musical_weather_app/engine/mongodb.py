@@ -3,15 +3,19 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import pandas as pd
 
-filename = r"D:\Backup\repos\auth.json"
-cert_file = r"D:\Backup\repos\musicalweather.pem"
+import cloud_driver
 
-with open(filename) as file:
-    data = json.load(file)
-    mongo_conn_st = data['musical_weather']
+# Replace these with your Google Cloud project ID and the names of your secrets
+project_id = "musical-weather"
+secret_id_cert = "mongo_cert"
+secret_id_auth = "mongo_musical_weather"
+
+# Access the secrets
+cert_value = cloud_driver.access_secret_version(project_id, secret_id_cert)
+auth_value = cloud_driver.access_secret_version(project_id, secret_id_auth)
 
 def get_client():
-    return MongoClient(mongo_conn_st, tls=True, tlsCertificateKeyFile=cert_file, server_api=ServerApi('1'))
+    return MongoClient(auth_value, tls=True, tlsCertificateKeyFile=cert_value, server_api=ServerApi('1'))
 
 def store_collection(database_name, collection_name, data):
     mongo_client = get_client()

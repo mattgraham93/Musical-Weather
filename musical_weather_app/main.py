@@ -4,9 +4,12 @@ import config
 import json
 import time
 import uuid
+import musical_weather
 
 from blueprints.activities import activities
 
+# gcloud run deploy musical-weather --region=us-west1 --source=$(pwd) --allow-unauthenticated    
+# 
 # Flask app creation 
 # https://medium.com/google-cloud/deploy-a-python-flask-server-using-google-cloud-run-d47f728cc864
 
@@ -52,6 +55,19 @@ def create_app():
   def hello_world():
     return "pong"
   
+  @app.route('/get_songs')
+  def get_songs():
+      selected_songs_weather, selected_songs_season = musical_weather.main()
+      songs = {
+          'selected_songs_weather': selected_songs_weather.to_dict(orient='records'),
+          'selected_songs_season': selected_songs_season.to_dict(orient='records')
+      }
+      return jsonify(songs)
+
+  @app.route('/table')
+  def table():
+      return render_template("tables.basic-table.html")      
+      
   '''
     what needs to happen:
     get and load:

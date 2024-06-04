@@ -1,5 +1,6 @@
 Cython==3.0.10
 Flask==2.2.5
+google-cloud-secret-manager == 2.7.0
 gunicorn==22.0.0
 lyricsgenius==3.0.1
 matplotlib==3.8.0

@@ -5,7 +5,7 @@ import time
 
 import sys
 sys.path.insert(0, '..')
-from engine import mongodb
+import mongodb
 
 from spotify_py_sdk import SpotifyApi, SdkConfig
 
@@ -15,12 +15,15 @@ from scipy.stats import skew
 from dotenv import load_dotenv
 load_dotenv()
 
-filename = r"D:\Backup\repos\auth.json"
+import cloud_driver
 
-with open(filename) as file:
-    data = json.load(file)
-    CLIENT_ID = data['spotify_client_id']
-    CLIENT_SECRET = data['spotify_client_secret']
+project_id = "musical-weather"
+secret_id_client_id = "spotify_client_id"
+secret_id_client_secret = "spotify_client_secret"
+
+# Access the secrets
+CLIENT_ID = cloud_driver.access_secret_version(project_id, secret_id_client_id)
+CLIENT_SECRET = cloud_driver.access_secret_version(project_id, secret_id_client_secret)
 
 config = SdkConfig() # optional; can create custom methods
 api: SpotifyApi = SpotifyApi(CLIENT_ID, CLIENT_SECRET, config)

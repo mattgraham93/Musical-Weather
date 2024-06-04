@@ -10,8 +10,18 @@
 // Data Table JavaScripts
 
 (function ($) {
-	'use strict';
+    'use strict';
     
-	$('#dt-opt').DataTable();
+    $('#myTable').DataTable({
+        'ajax': {
+            'url': '/get_songs',
+            'dataSrc': 'selected_songs_season'  // or 'selected_songs_weather' depending on which one you want to display
+        },
+        'columns': [
+            { 'data': 'artist' },
+            { 'data': 'track' },
+            { 'data': 'event' }
+        ]
+    });
 
 })(jQuery);
