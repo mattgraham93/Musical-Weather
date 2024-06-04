@@ -55,39 +55,31 @@ def create_app():
   def hello_world():
     return "pong"
   
-  @app.route('/get_weather')
-  def get_weather():
+  @app.route('/table')
+  def table():
+      # Get weather data
       historical_weather, historical_summary = musical_weather.get_stored_weather()
       todays_forecast = musical_weather.get_forecast(historical_weather)
-      weather = {
+      weather_data = {
           'historical_weather': historical_weather.to_dict(orient='records'),
           'historical_summary': historical_summary.to_dict(orient='records'),
           'todays_forecast': todays_forecast.to_dict(orient='records')
       }
-      return jsonify(weather)
-  
-  @app.route('/get_songs')
-  def get_songs():
+
+      # Get songs data
       selected_songs_weather, selected_songs_season = musical_weather.main()
-      songs = {
+      songs_data = {
           'selected_songs_weather': selected_songs_weather.to_dict(orient='records'),
           'selected_songs_season': selected_songs_season.to_dict(orient='records')
       }
-      return jsonify(songs)
+      print(len(selected_songs_weather), len(selected_songs_season))
 
-  @app.route('/table')
-  def table():
-      return render_template("tables.basic-table.html")      
-      
+      all_songs = [song for songs_list in songs_data.values() for song in songs_list]
+
+      # Render the template with the datasets
+      return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
+        
   '''
-    what needs to happen:
-    get and load:
-      - weather data
-      
-    develop and load transformed data
-    
-    get user input
-    run model
     
     return list of songs with spotify uris / links
     

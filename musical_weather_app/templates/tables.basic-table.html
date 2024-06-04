@@ -463,37 +463,43 @@
                 <!-- Header END -->
                 
                 <!-- Content Wrapper START -->
-                <div class="main-content">
-                    <div class="container-fluid">
-                        <div class="page-title">
-                            <h4>Basic Table</h4>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-block">
-                                        <h4 class="card-title">Small Table</h4>
-                                        <p>Add <code>.table-sm</code> to make the table smaller</p>
-                                        <div class="table-overflow">
-                                            <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Artist</th>
-                                                        <th>Track</th>
-                                                        <th>Season</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                </tbody>
-                                            </table>
+                    <div class="main-content">
+                        <div class="container-fluid">
+                            <div class="page-title">
+                                <h4>Basic Table</h4>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-block">
+                                            <h4 class="card-title">Small Table</h4>
+                                            <div class="table-overflow">
+                                                <table id="myTable" class="table table-bordered table-hover table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Artist</th>
+                                                            <th>Track</th>
+                                                            <th>Track ID</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for song in songs %}
+                                                            <tr>
+                                                                <td>{{ song['artist'] }}</td>
+                                                                <td>{{ song['song'] }}</td>
+                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 <!-- Content Wrapper END -->
 
                 <!-- Footer START -->
