@@ -55,6 +55,17 @@ def create_app():
   def hello_world():
     return "pong"
   
+  @app.route('/get_weather')
+  def get_weather():
+      historical_weather, historical_summary = musical_weather.get_stored_weather()
+      todays_forecast = musical_weather.get_forecast(historical_weather)
+      weather = {
+          'historical_weather': historical_weather.to_dict(orient='records'),
+          'historical_summary': historical_summary.to_dict(orient='records'),
+          'todays_forecast': todays_forecast.to_dict(orient='records')
+      }
+      return jsonify(weather)
+  
   @app.route('/get_songs')
   def get_songs():
       selected_songs_weather, selected_songs_season = musical_weather.main()
@@ -72,7 +83,6 @@ def create_app():
     what needs to happen:
     get and load:
       - weather data
-      - music data
       
     develop and load transformed data
     
