@@ -4,12 +4,13 @@ import json
 from urllib.request import urlopen
 import pandas as pd
 import numpy as np
-from engine import senitment_analysis as sa, mongodb
+
 import sys
 sys.path.insert(0, '..')
-
-from engine import mongodb
 from weather_files import weather_today as wt, weather_historical as wh
+
+import senitment_analysis as sa
+import mongodb
 from datetime import datetime
 
 from statsmodels.tsa.arima.model import ARIMA
@@ -49,14 +50,18 @@ def predict_forecasted_event(todays_forecast, forecast_model):
     if 'date' in todays_forecast.columns:
         todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
 
+        # Check if 'date' is already timezone-aware
+        if todays_forecast['date'].dt.tz is None:
+            # If not, make 'date' timezone-aware
+            todays_forecast['date'] = todays_forecast['date'].dt.tz_localize('America/Los_Angeles')
+
         # Set 'date' as the index of the DataFrame
         todays_forecast.set_index('date', inplace=True)
 
     # Make predictions
-    start_date = todays_forecast.index.min()
-    end_date = todays_forecast.index.max()
+    start_date = todays_forecast.index.min().tz_localize(None)
+    end_date = todays_forecast.index.max().tz_localize(None)
     forecasted_values = forecast_model.predict(start=start_date, end=end_date)
-
     # Add the forecasted values to the DataFrame
     todays_forecast['forecasted_event'] = forecasted_values
 
@@ -79,23 +84,25 @@ def create_model(historical_weather):
 
     return model_base, model_fit
 
-def calculate_average_t_score(todays_forecast, historical_raw):
+def calculate_average_t_score(todays_forecast, historical_weather):
     # Initialize an empty DataFrame to store the t-scores
     t_scores_df = pd.DataFrame()
 
     # Select numerical columns only
     numerical_columns = todays_forecast.select_dtypes(include=[np.number]).columns
-
+    if 'average_t_score' in numerical_columns:
+        numerical_columns = numerical_columns.drop('average_t_score')
+    
     for index, row in todays_forecast.iterrows():
         event = row['event']
         season = row['season']
 
         # Filter the DataFrame based on the event and season
-        filtered_df = historical_raw[(historical_raw['event'] == event) & (historical_raw['season'] == season)]
+        filtered_df = historical_weather[(historical_weather['event'] == event) & (historical_weather['season'] == season)]
 
         # If the filtered dataframe is empty or has less than two rows, get the average for the season only
         if filtered_df.empty or len(filtered_df) < 2:
-            filtered_df = historical_raw[historical_raw['season'] == season]
+            filtered_df = historical_weather[historical_weather['season'] == season]
             if filtered_df.empty or len(filtered_df) < 2:
                 continue
 
@@ -106,6 +113,9 @@ def calculate_average_t_score(todays_forecast, historical_raw):
         # Only keep columns that are present in mean_df and std_df
         numerical_columns = [col for col in numerical_columns if col in mean_df.columns and col in std_df.columns]
 
+        if row['weather_score'] == 0:
+            row['weather_score'] = 1
+            
         # Now calculate the t-score
         t_scores = (row[numerical_columns] - mean_df[numerical_columns].squeeze()) / (std_df[numerical_columns].squeeze() + 1e-7)
 
@@ -169,6 +179,7 @@ def get_forecast():
     
     if historical_weather.empty:
         print("No historical summary data available. Setting t-score to 0...")
+        print("Please store historical data and run the forecast pull again")
         todays_forecast['average_t_score'] = 0
     else:
         todays_forecast = calculate_average_t_score(todays_forecast, historical_weather)

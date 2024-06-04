@@ -2,9 +2,11 @@ import json
 import pandas as pd
 import numpy as np
 import time
-
 import sys
-sys.path.insert(0, '..')
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import mongodb
 
 from spotify_py_sdk import SpotifyApi, SdkConfig

@@ -19,7 +19,7 @@
 from engine import spotify_enrichment, weather
 import pandas as pd
 from datetime import datetime
-
+import pytz
 
 def setup_first_time(is_first_time):
     first_time = is_first_time
@@ -54,10 +54,16 @@ def get_stored_weather():
 
 def get_forecast(historical_weather):
     todays_forecast = weather.get_stored_weather('weather.forecast', 'seattle')
-    
+
     # Convert todays_forecast to a DataFrame if it's a list
     if isinstance(todays_forecast, list):
         todays_forecast = pd.DataFrame(todays_forecast)
+
+    # Check if 'date' column exists before localizing it
+    if 'date' in todays_forecast.columns:
+        todays_forecast['date'] = todays_forecast['date'].dt.tz_localize('America/Los_Angeles')
+    else:
+        todays_forecast['date'] = pd.Timestamp.now(tz='America/Los_Angeles')
 
     if 'ObjectId' in todays_forecast.columns:
         todays_forecast = todays_forecast.drop(columns=['ObjectId'])

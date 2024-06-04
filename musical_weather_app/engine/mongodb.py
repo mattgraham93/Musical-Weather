@@ -15,7 +15,12 @@ cert_value = cloud_driver.access_secret_version(project_id, secret_id_cert)
 auth_value = cloud_driver.access_secret_version(project_id, secret_id_auth)
 
 def get_client():
-    return MongoClient(auth_value, tls=True, tlsCertificateKeyFile=cert_value, server_api=ServerApi('1'))
+    # Save the certificate content to a file
+    with open('certificate.pem', 'w') as f:
+        f.write(cert_value)
+
+    # Pass the path to the file as the tlsCertificateKeyFile argument
+    return MongoClient(auth_value, tls=True, tlsCertificateKeyFile='certificate.pem', server_api=ServerApi('1'))        
 
 def store_collection(database_name, collection_name, data):
     mongo_client = get_client()
