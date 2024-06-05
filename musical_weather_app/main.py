@@ -79,10 +79,7 @@ def create_app():
       # Render the template with the datasets
       return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
         
-  '''
-    
-    return list of songs with spotify uris / links
-    
+  '''    
     ideally: find way to save to playlist
   '''
   

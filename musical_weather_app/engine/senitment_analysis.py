@@ -5,14 +5,14 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from textblob import TextBlob
 
-# requirements: nltk, textblob, vaderSentiment
 # https://textblob.readthedocs.io/en/dev/
 
-# only need to download once
 # nltk.download('all')
 
-nltk.download('all')
-
+nltk.download('vader_lexicon')
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 def score_weight(score):
     if score > 0:
