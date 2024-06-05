@@ -11,7 +11,7 @@ from textblob import TextBlob
 # only need to download once
 # nltk.download('all')
 
-nltk.download('vader_lexicon')
+nltk.download('all')
 
 
 def score_weight(score):
