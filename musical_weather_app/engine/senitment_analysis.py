@@ -7,13 +7,6 @@ from textblob import TextBlob
 
 # https://textblob.readthedocs.io/en/dev/
 
-# nltk.download('all')
-
-nltk.download('vader_lexicon')
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('wordnet')
-
 def score_weight(score):
     if score > 0:
         return 1 + score

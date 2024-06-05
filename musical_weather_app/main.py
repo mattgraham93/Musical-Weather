@@ -5,8 +5,15 @@ import json
 import time
 import uuid
 import musical_weather
+import random
 
 from blueprints.activities import activities
+
+import nltk
+nltk.download('vader_lexicon')
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('wordnet')
 
 # gcloud run deploy musical-weather --region=us-west1 --source=$(pwd) --allow-unauthenticated    
 # 
@@ -57,27 +64,31 @@ def create_app():
   
   @app.route('/table')
   def table():
-      # Get weather data
-      historical_weather, historical_summary = musical_weather.get_stored_weather()
-      todays_forecast = musical_weather.get_forecast(historical_weather)
-      weather_data = {
-          'historical_weather': historical_weather.to_dict(orient='records'),
-          'historical_summary': historical_summary.to_dict(orient='records'),
-          'todays_forecast': todays_forecast.to_dict(orient='records')
-      }
+    # Get weather data
+    historical_weather, historical_summary = musical_weather.get_stored_weather()
+    todays_forecast = musical_weather.get_forecast(historical_weather)
+    weather_data = {
+        'historical_weather': historical_weather.to_dict(orient='records'),
+        'historical_summary': historical_summary.to_dict(orient='records'),
+        'todays_forecast': todays_forecast.to_dict(orient='records')
+    }
 
-      # Get songs data
-      selected_songs_weather, selected_songs_season = musical_weather.main()
-      songs_data = {
-          'selected_songs_weather': selected_songs_weather.to_dict(orient='records'),
-          'selected_songs_season': selected_songs_season.to_dict(orient='records')
-      }
-      print(len(selected_songs_weather), len(selected_songs_season))
+    # Get songs data
+    selected_songs_weather, selected_songs_season = musical_weather.main()
+    songs_data = {
+        'selected_songs_weather': selected_songs_weather.to_dict(orient='records'),
+        'selected_songs_season': selected_songs_season.to_dict(orient='records')
+    }
+    print(len(selected_songs_weather), len(selected_songs_season))
 
-      all_songs = [song for songs_list in songs_data.values() for song in songs_list]
+    all_songs = [song for songs_list in songs_data.values() for song in songs_list]
 
-      # Render the template with the datasets
-      return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
+    # Select a random subset of 50 songs
+    if len(all_songs) > 50:
+        all_songs = random.sample(all_songs, 50)
+
+    # Render the template with the datasets
+    return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
         
   '''    
     ideally: find way to save to playlist
