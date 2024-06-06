@@ -461,73 +461,263 @@
                     </div>
                 </div>
                 <!-- Header END -->
-                
+
                 <!-- Content Wrapper START -->
-                    <div class="main-content">
-                        <div class="container-fluid">
-                            <div class="page-title">
-                                <h4>Musical Weather v1</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Forecast</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {# {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %} #}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Today's playlist</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-title">
+                            <h4>Form Wizard</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-block">
+                                        <div class="row relative">
+                                            <form id="shipping-form" class="width-100" method="get">
+                                                <div id="rootwizard" class="form-wizard col-md-10 ml-auto mr-auto">
+                                                    <ul class="nav nav-pills nav-fill">
+                                                        <li class="nav-item">
+                                                            <a href="#step1" data-toggle="tab">
+                                                                <span class="step">1</span>
+                                                                <span class="title">Your Order</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-item">
+                                                            <a href="#step2" data-toggle="tab">
+                                                                <span class="step">2</span>
+                                                                <span class="title">Shipping Info</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-item">
+                                                            <a href="#step3" data-toggle="tab">
+                                                                <span class="step">3</span>
+                                                                <span class="title">Payment Method</span>
+                                                            </a>
+                                                        </li>
+                                                        <li class="nav-item">
+                                                            <a href="#step4" data-toggle="tab">
+                                                                <span class="step">4</span>
+                                                                <span class="title">Confirmation</span>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                    <div id="bar" class="progress progress-info" style="width: 75%">
+                                                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                                                    </div>
+                                                    <div class="tab-content">
+                                                        <div id="step1" class="tab-pane fade in active">
+                                                            <div class="row">
+                                                                <div class="col-md-8">
+                                                                    <table class="table table-hover product-table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th></th>
+                                                                                <th>Item</th>
+                                                                                <th>Quantity</th>
+                                                                                <th>Price</th>
+                                                                                <th class="text-right">Subtotal</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <img class="img-fluid" src="assets/images/others/product-1.jpg" alt="">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-10 no-mrg-btm">Vincent Chase VC 5158/P</p>
+                                                                                    <b>Size: Medium</b>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">1</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">$180.00</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20 text-right">$180.00</p>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <img class="img-fluid" src="assets/images/others/product-2.jpg" alt="">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-10 no-mrg-btm">Vincent Chase VC 5168</p>
+                                                                                    <b>Size: Medium</b>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">4</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">$200.00</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20 text-right">$800.00</p>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <img class="img-fluid" src="assets/images/others/product-3.jpg" alt="">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-10 no-mrg-btm">Vincent Chase VC 5168</p>
+                                                                                    <b>Size: Medium</b>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">2</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20">$180.00</p>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <p class="pdd-top-20 text-right">$360.00</p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <div class="pdd-horizon-30">
+                                                                        <div class="card">
+                                                                            <div class="card-block">
+                                                                                <h4 class="card-title mrg-btm-30">Summary</h4>
+                                                                                <div class="border bottom">
+                                                                                    <p>Subtotal: <span class="pull-right">$1,340.00</span></p>
+                                                                                    <p>Shipping: <span class="pull-right">$100.00</span></p>
+                                                                                    <p class="mrg-top-20">Discount: <span class="pull-right">$60</span></p>
+                                                                                </div>
+                                                                                <p class="mrg-top-20">Grand Total: <span class="pull-right text-dark font-size-18"><b>$1380.00</b></span></p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="step2" class="tab-pane fade">
+                                                            <div class="row">
+                                                                <div class="col-md-10 mr-auto ml-auto">
+                                                                    <div class="row">
+                                                                        <div class="col-md-6">
+                                                                            <div class="form-group">
+                                                                                <label>First Name</label>
+                                                                                <input type="text" class="form-control" name="firstName">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <div class="form-group">
+                                                                                <label>Last Name</label>
+                                                                                <input type="text" class="form-control" name="lastName">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-group">
+                                                                                <label>Email</label>
+                                                                                <input type="email" class="form-control" name="email">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-group">
+                                                                                <label>Address</label>
+                                                                                <input type="text" class="form-control" name="address">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-md-4">
+                                                                            <div class="form-group">
+                                                                                <label>State</label>
+                                                                                <input type="text" class="form-control" name="state">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <div class="form-group">
+                                                                                <label>City</label>
+                                                                                <input type="text" class="form-control" name="city">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <div class="form-group">
+                                                                                <label>Post Code</label>
+                                                                                <input type="text" class="form-control" name="postcode">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row">
+                                                                        <div class="col-md-12">
+                                                                            <div class="form-group">
+                                                                                <label>Remarks</label>
+                                                                                <textarea class="form-control" rows="3"></textarea>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="step3" class="tab-pane fade">
+                                                            <div class="row">
+                                                                <div class="col-md-8 mr-auto ml-auto">
+                                                                    <p class="font-size-18">
+                                                                        <span>Total Payment Amount: </span>
+                                                                        <b class="text-dark">$1380.00</b>
+                                                                        <img class="pull-right" src="assets/images/others/credit-card.png" alt="">
+                                                                    </p>
+                                                                    <div class="mrg-top-40">
+                                                                        <div class="row">
+                                                                            <div class="form-group col-md-12">
+                                                                                <label><span class="pdd-left-5"><b>CREDIT CARD NUMBER</b></span></label>
+                                                                                <input type="text" onkeypress="return event.charCode >= 48 &amp; event.charCode <= 57" class="form-control" placeholder="_ _ _ _ - _ _ _ _ - _ _ _ _ - _ _ _ _ " name="creditCard">
+                                                                            </div>
+                                                                            <div class="form-group col-md-6">
+                                                                                <label><span class="pdd-left-5"><b>CVV Code</b></span></label>
+                                                                                <input type="text" onkeypress="return event.charCode >= 48 &amp; event.charCode <= 57" class="form-control" placeholder="_ _ _" name="cvv">
+                                                                            </div>
+                                                                            <div class="form-group col-md-6">
+                                                                                <label><span class="pdd-left-5"><b>Expired Date</b></span></label>
+                                                                                <input type="text" class="form-control" onkeypress="return event.charCode >= 48 &amp; event.charCode <= 57" placeholder="MM/YY" name="mmyy">
+                                                                            </div>
+                                                                            <div class="form-group col-md-12">
+                                                                                <label><span class="pdd-left-5"><b>Cardholder Name</b></span></label>
+                                                                                <input type="text" class="form-control" placeholder="Card Name" name="cardName">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="step4" class="tab-pane fade">
+                                                            <div class="row">
+                                                                <div class="col-md-6 mr-auto ml-auto">
+                                                                    <img class="img-fluid d-block mrg-horizon-auto" src="assets/images/others/cart.png" alt="">
+                                                                    <div class="text-center">
+                                                                        <h2>Thanks for Your Order</h2>
+                                                                        <p>Your order has been placed successfully.
+                                                                            <br> Click learn more to know more about the order status.
+                                                                        </p>
+                                                                        <button class="btn btn-info btn-inverse btn-lg">Learn More</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="wizard-pager">
+                                                            <div class="">
+                                                                <button type="button" class="btn btn-default button-previous btn-rounded">Previous</button>
+                                                                <button type="button" class="btn btn-primary button-next pull-right btn-rounded">Next</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <!-- Content Wrapper END -->
 
                 <!-- Footer START -->
@@ -552,7 +742,6 @@
     <script src="assets/vendors/popper.js/dist/umd/popper.min.js"></script>
     <script src="assets/vendors/bootstrap/dist/js/bootstrap.js"></script>
     <script src="assets/vendors/PACE/pace.min.js"></script>
-    <script src="assets/js/table/data-table.js"></script>
     <script src="assets/vendors/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
     <script src="assets/js/fontawesome.min.js"></script>
     <script src="assets/js/solid.min.js"></script>
@@ -563,7 +752,12 @@
     <script src="assets/js/app.js"></script>
     <!-- endbuild -->
 
+    <!-- page plugins js -->
+    <script src="assets/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="assets/vendors/twitter-bootstrap-wizard/jquery.bootstrap.wizard.min.js"></script>
+
     <!-- page js -->
+    <script src="assets/js/forms/form-wizard.js"></script>
 
 </body>
 

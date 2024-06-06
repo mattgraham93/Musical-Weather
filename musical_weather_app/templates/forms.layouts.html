@@ -461,66 +461,172 @@
                     </div>
                 </div>
                 <!-- Header END -->
-                
+
                 <!-- Content Wrapper START -->
-                    <div class="main-content">
-                        <div class="container-fluid">
-                            <div class="page-title">
-                                <h4>Musical Weather v1</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Forecast</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {# {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %} #}
-                                                    </tbody>
-                                                </table>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-title">
+                            <h4>Form Layouts</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Default Form Layout</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div class="mrg-top-40">
+                                            <div class="row">
+                                                <div class="col-md-8 ml-auto mr-auto">
+                                                    <form>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>First Name</label>
+                                                                    <input type="text" placeholder="Enter email" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>Last Name</label>
+                                                                    <input type="text" placeholder="Enter email" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <label>Email address</label>
+                                                                    <input type="email" placeholder="Enter email" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <label>Password</label>
+                                                                    <input type="password" placeholder="Password" class="form-control">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-6 col-xs-6">
+                                                                <div class="checkbox">
+                                                                    <input id="check1" type="checkbox">
+                                                                    <label for="check1">I agree to the <a class="text-link" href="">Term & Conditions</a>.</label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 col-xs-6">
+                                                                <div class="text-right mrg-top-5">
+                                                                    <button type="submit" class="btn btn-primary">Create Account</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Horizontal Form Layout</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div class="row">
+                                            <div class="col-md-9 ml-auto mr-auto">
+                                                <form class="form-horizontal mrg-top-40 pdd-right-30 ng-pristine ng-valid">
+                                                    <div class="form-group row">
+                                                        <label for="form-1-1" class="col-md-1 control-label">Name</label>
+                                                        <div class="col-md-10">
+                                                            <input type="text" class="form-control" id="form-1-1" placeholder="Name">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <label for="form-1-3" class="col-md-1 control-label">Email</label>
+                                                        <div class="col-md-10">
+                                                            <input type="email" class="form-control" id="form-1-3" placeholder="Email">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <label class="col-md-1 control-label">Gender</label>
+                                                        <div class="col-md-10">
+                                                            <div class="radio radio-inline">
+                                                                <input type="radio" checked="" name="radio1" id="rad1">
+                                                                <label for="rad1">Male</label>
+                                                            </div>
+                                                            <div class="radio radio-inline">
+                                                                <input type="radio" checked="" name="radio1" id="rad2">
+                                                                <label for="rad2">Female</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <label for="form-1-5" class="col-md-1 control-label">Textarea</label>
+                                                        <div class="col-md-10">
+                                                            <textarea class="form-control" rows="3" id="form-1-5"></textarea>
+                                                            <div class="text-right mrg-top-15">
+                                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                                <button class="btn btn-default">Clear</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Form Validation Layout</h4>
+                                    </div>
+                                    <div class="card-block">
                                         <div class="card-block">
-                                            <h4 class="card-title">Today's playlist</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
+                                            <div class="row">
+                                                <div class="col-md-8 ml-auto mr-auto">
+                                                    <form role="form" id="form-validation">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>Name <small class="text-normal">*Minimum 8 characters</small></label>
+                                                                    <input type="text" class="form-control" name="name" placeholder="Enter your name" required minlength="8">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>Email</label>
+                                                                    <input type="email" class="form-control" name="email" placeholder="Enter a valid email format" required>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <label>Website</label>
+                                                                    <input type="url" class="form-control" name="url" placeholder="Insert a valid URL format" required>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <div class="form-group">
+                                                                    <label>Amount</label>
+                                                                    <input type="number" class="form-control" name="number" placeholder="Enter a Number" required>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button class="btn btn-primary">Submit</button>
+                                                        <button class="btn btn-default">Clear</button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -528,6 +634,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
                 <!-- Content Wrapper END -->
 
                 <!-- Footer START -->
@@ -552,7 +659,6 @@
     <script src="assets/vendors/popper.js/dist/umd/popper.min.js"></script>
     <script src="assets/vendors/bootstrap/dist/js/bootstrap.js"></script>
     <script src="assets/vendors/PACE/pace.min.js"></script>
-    <script src="assets/js/table/data-table.js"></script>
     <script src="assets/vendors/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
     <script src="assets/js/fontawesome.min.js"></script>
     <script src="assets/js/solid.min.js"></script>
@@ -563,7 +669,11 @@
     <script src="assets/js/app.js"></script>
     <!-- endbuild -->
 
+    <!-- page plugins js -->
+    <script src="assets/vendors/jquery-validation/dist/jquery.validate.min.js"></script>
+
     <!-- page js -->
+    <script src="assets/js/forms/form-validation.js"></script>
 
 </body>
 

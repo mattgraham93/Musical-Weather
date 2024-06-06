@@ -23,6 +23,8 @@
     <link rel="stylesheet" href="assets/vendors/PACE/themes/blue/pace-theme-minimal.css" />
     <link rel="stylesheet" href="assets/vendors/perfect-scrollbar/css/perfect-scrollbar.min.css" />
 
+    <!-- page plugins css -->
+
     <!-- core css -->
     <link href="assets/css/themify-icons.css" rel="stylesheet">
     <link href="assets/css/flag-icon.min.css" rel="stylesheet">
@@ -461,73 +463,95 @@
                     </div>
                 </div>
                 <!-- Header END -->
-                
+
                 <!-- Content Wrapper START -->
-                    <div class="main-content">
-                        <div class="container-fluid">
-                            <div class="page-title">
-                                <h4>Musical Weather v1</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Forecast</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {# {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %} #}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-title">
+                            <h4>Chartjs</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Pie Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="pie-chart"></canvas>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Today's playlist</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Donut Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="donut-chart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Radar Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="radar-chart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Polar Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="polar-chart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Line Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="line-chart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-heading border bottom">
+                                        <h4 class="card-title">Line Chart</h4>
+                                    </div>
+                                    <div class="card-block">
+                                        <div>
+                                            <canvas id="bar-chart"></canvas>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <!-- Content Wrapper END -->
 
                 <!-- Footer START -->
@@ -552,11 +576,13 @@
     <script src="assets/vendors/popper.js/dist/umd/popper.min.js"></script>
     <script src="assets/vendors/bootstrap/dist/js/bootstrap.js"></script>
     <script src="assets/vendors/PACE/pace.min.js"></script>
-    <script src="assets/js/table/data-table.js"></script>
     <script src="assets/vendors/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
     <script src="assets/js/fontawesome.min.js"></script>
     <script src="assets/js/solid.min.js"></script>
     <!-- endbuild -->
+
+    <!-- page plugins js -->
+    <script src="assets/vendors/chart.js/dist/Chart.min.js"></script>
 
     <!-- build:js assets/js/app.min.js -->
     <!-- core js -->
@@ -564,6 +590,7 @@
     <!-- endbuild -->
 
     <!-- page js -->
+    <script src="assets/js/charts/chartjs.js"></script>
 
 </body>
 

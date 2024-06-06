@@ -23,6 +23,10 @@
     <link rel="stylesheet" href="assets/vendors/PACE/themes/blue/pace-theme-minimal.css" />
     <link rel="stylesheet" href="assets/vendors/perfect-scrollbar/css/perfect-scrollbar.min.css" />
 
+    <!-- page plugins css -->
+    <link rel="stylesheet" href="assets/css/sweetalert.css" />
+    <link rel="stylesheet" href="assets/vendors/selectize/dist/css/selectize.default.css" />
+
     <!-- core css -->
     <link href="assets/css/themify-icons.css" rel="stylesheet">
     <link href="assets/css/flag-icon.min.css" rel="stylesheet">
@@ -461,73 +465,83 @@
                     </div>
                 </div>
                 <!-- Header END -->
-                
+
                 <!-- Content Wrapper START -->
-                    <div class="main-content">
-                        <div class="container-fluid">
-                            <div class="page-title">
-                                <h4>Musical Weather v1</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Forecast</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {# {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %} #}
-                                                    </tbody>
-                                                </table>
+                <div class="main-content">
+                    <div class="container-fluid">
+                        <div class="page-title">
+                            <h4>Notification</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-block">
+                                        <h4 class="card-title">Noty</h4>
+                                        <p class="width-90 mrg-btm-30">NOTY is a notification library that makes it easy to create alert - success - error - warning - information - confirmation messages as an alternative the standard alert dialog.</p>
+                                        <div class="row">
+                                            <div class="col-md-7">
+                                                <div class="mrg-btm-20">
+                                                    <label for="noty-messenger-type">Type</label>
+                                                    <select id="noty-messenger-type" class="noty-selectize-config">
+                                                        <option value="Information">Information</option>
+                                                        <option value="Success">Success</option>
+                                                        <option value="Error">Error</option>
+                                                        <option value="Warning">Warning</option>
+                                                        <option value="Confirm">Confirm</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mrg-btm-20">
+                                                    <label for="noty-position">Position</label>
+                                                    <select id="noty-position" class="noty-selectize-config">
+                                                        <option value="topRight">Top Right</option>
+                                                        <option value="top">Top</option>
+                                                        <option value="topLeft">Top Left</option>
+                                                        <option value="bottomLeft">Bottom Left</option>
+                                                        <option value="bottom">Bottom</option>
+                                                        <option value="bottomRight">Bottom Right</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mrg-btm-20">
+                                                    <label class="control-label" for="noty-message">Message</label>
+                                                    <textarea class="form-control" id="noty-message" rows="2" placeholder="Type your message ..."></textarea>
+                                                    <div class="mrg-top-20">
+                                                        <button class="btn btn-primary show-noty">
+                                                            <span>Trigger</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Today's playlist</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-block">
+                                        <h4 class="card-title">Sweet Alert</h4>
+                                        <p>Sweetalert is a beautiful replacement for JavaScript "alert"</p>
+                                        <p>SweetAlert automatically centers itself on the page and looks great no matter if you're using a desktop computer, mobile or tablet. It's even highly customizeable, as you can see below!</p>
+                                        <div class="mrg-top-20 mrg-btm-30">
+                                            <button class="btn btn-default btn-rounded swal-simple">Simple Message</button>
+                                            <button class="btn btn-primary btn-rounded swal-with-text">With Text</button>
+                                            <button class="btn btn-success btn-rounded swal-success">Success Message</button>
+                                        </div>
+                                        <h5>With Function</h5>
+                                        <p>A warning message, with a function attached to the "Confirm"-button</p>
+                                        <div class="mrg-top-20 mrg-btm-30">
+                                            <button class="btn btn-warning btn-rounded swal-function">Try Me</button>
+                                        </div>
+                                        <h5>Passing a Parameter</h5>
+                                        <p>you can execute something else for "Cancel".</p>
+                                        <div class="mrg-top-20 mrg-btm-30">
+                                            <button class="btn btn-danger btn-rounded swal-pass-param">Try Me</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <!-- Content Wrapper END -->
 
                 <!-- Footer START -->
@@ -552,11 +566,15 @@
     <script src="assets/vendors/popper.js/dist/umd/popper.min.js"></script>
     <script src="assets/vendors/bootstrap/dist/js/bootstrap.js"></script>
     <script src="assets/vendors/PACE/pace.min.js"></script>
-    <script src="assets/js/table/data-table.js"></script>
     <script src="assets/vendors/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
     <script src="assets/js/fontawesome.min.js"></script>
     <script src="assets/js/solid.min.js"></script>
     <!-- endbuild -->
+
+    <!-- page plugins js -->
+    <script src="assets/vendors/sweetalert/lib/sweet-alert.js"></script>
+    <script src="assets/vendors/noty/js/noty/packaged/jquery.noty.packaged.min.js"></script>
+    <script src="assets/vendors/selectize/dist/js/standalone/selectize.min.js"></script>
 
     <!-- build:js assets/js/app.min.js -->
     <!-- core js -->
@@ -564,6 +582,7 @@
     <!-- endbuild -->
 
     <!-- page js -->
+    <script src="assets/js/ui-elements/notification.js"></script>
 
 </body>
 

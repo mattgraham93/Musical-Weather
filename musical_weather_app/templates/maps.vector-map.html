@@ -23,6 +23,9 @@
     <link rel="stylesheet" href="assets/vendors/PACE/themes/blue/pace-theme-minimal.css" />
     <link rel="stylesheet" href="assets/vendors/perfect-scrollbar/css/perfect-scrollbar.min.css" />
 
+    <!-- page plugins css -->
+    <link rel="stylesheet" href="assets/vendors/bower-jvectormap/jquery-jvectormap-1.2.2.css" />
+
     <!-- core css -->
     <link href="assets/css/themify-icons.css" rel="stylesheet">
     <link href="assets/css/flag-icon.min.css" rel="stylesheet">
@@ -461,75 +464,18 @@
                     </div>
                 </div>
                 <!-- Header END -->
-                
+
                 <!-- Content Wrapper START -->
-                    <div class="main-content">
-                        <div class="container-fluid">
-                            <div class="page-title">
-                                <h4>Musical Weather v1</h4>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Forecast</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {# {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %} #}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div class="card-block">
-                                            <h4 class="card-title">Today's playlist</h4>
-                                            <div class="table-overflow">
-                                                <table id="myTable" class="table table-bordered table-hover table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Artist</th>
-                                                            <th>Track</th>
-                                                            <th>Track ID</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for song in songs %}
-                                                            <tr>
-                                                                <td>{{ song['artist'] }}</td>
-                                                                <td>{{ song['song'] }}</td>
-                                                                <td><a href="https://open.spotify.com/track/{{ song['track_id'] }}">Link to Spotify</a></td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                <div class="main-content">
+                    <div class="full-container">
+                        <div class="maps map-fs">
+                            <div id="vector-map-opt">
                             </div>
                         </div>
                     </div>
+                </div>
                 <!-- Content Wrapper END -->
-
+                
                 <!-- Footer START -->
                 <footer class="content-footer">
                     <div class="footer">
@@ -552,7 +498,6 @@
     <script src="assets/vendors/popper.js/dist/umd/popper.min.js"></script>
     <script src="assets/vendors/bootstrap/dist/js/bootstrap.js"></script>
     <script src="assets/vendors/PACE/pace.min.js"></script>
-    <script src="assets/js/table/data-table.js"></script>
     <script src="assets/vendors/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
     <script src="assets/js/fontawesome.min.js"></script>
     <script src="assets/js/solid.min.js"></script>
@@ -563,7 +508,12 @@
     <script src="assets/js/app.js"></script>
     <!-- endbuild -->
 
+    <!-- page plugins js -->
+    <script src="assets/vendors/bower-jvectormap/jquery-jvectormap-1.2.2.min.js"></script>
+    <script src="assets/vendors/bower-jvectormap/jquery-jvectormap-world-mill-en.js"></script>
+
     <!-- page js -->
+    <script src="assets/js/maps/jvector-map.js"></script>
 
 </body>
 
