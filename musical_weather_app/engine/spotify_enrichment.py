@@ -77,8 +77,7 @@ def calculate_average_t_score(playlist_df):
     numerical_columns = playlist_df.select_dtypes(include=[np.number]).columns
 
     # Exclude columns that are not required for t-score calculation
-    columns_to_drop = ['is_precipitation', 'event_le', 'score', 't_score']
-    numerical_columns = numerical_columns.drop([col for col in columns_to_drop if col in numerical_columns.columns])
+    numerical_columns = numerical_columns.drop(['is_precipitation', 'event_le', 'score', 't_score'])
 
     for event, group in playlist_df.groupby('event'):
         # If the group has less than two rows, skip this iteration
