@@ -15,8 +15,8 @@ url = "https://archive-api.open-meteo.com/v1/archive"
 
 def get_historical_weather(start, end):
 	params = {
-	"latitude": 52.52,
-	"longitude": 13.41,
+	"latitude": 47.688,
+	"longitude": -122.255,
 	"start_date": start,
 	"end_date": end,
 	"daily": ["weather_code", "temperature_2m_max", "temperature_2m_min", "temperature_2m_mean", "apparent_temperature_max", "apparent_temperature_min", "apparent_temperature_mean", "sunrise", "sunset", "daylight_duration", "sunshine_duration", "precipitation_sum", "rain_sum", "snowfall_sum", "precipitation_hours", "wind_speed_10m_max", "wind_gusts_10m_max", "wind_direction_10m_dominant", "shortwave_radiation_sum"],

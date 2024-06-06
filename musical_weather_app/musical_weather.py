@@ -9,10 +9,10 @@
     - return the results to the music algorithm - done
     - with the weather event, get range of scores for that event in relation to how it scores in the music algorithm (t-score) - done
     - return selection of songs within 2 standard deviations of the mean weather event score - done
+    - anything outside of weather events (seasons) -- done
     
     nice to haves:
     - stuff from last.fm (seattle stuff)
-    - anything outside of weather events (seasons)
     - ability to select a city
 '''
 
@@ -69,10 +69,6 @@ def get_forecast(historical_weather):
         todays_forecast = todays_forecast.drop(columns=['ObjectId'])
 
     if todays_forecast.empty:
-        todays_forecast = pull_forecast()
-        weather.store_weather_data(todays_forecast, "forecast")
-        
-    if todays_forecast['date'][0].date() != datetime.today().date():
         todays_forecast = pull_forecast()
         weather.store_weather_data(todays_forecast, "forecast")
 

@@ -77,8 +77,10 @@ def calculate_average_t_score(playlist_df):
     numerical_columns = playlist_df.select_dtypes(include=[np.number]).columns
 
     # Exclude columns that are not required for t-score calculation
-    numerical_columns = numerical_columns.drop(['is_precipitation', 'event_le', 'score', 't_score'])
-
+    
+    columns_to_drop = ['is_precipitation', 'event_le', 'score', 't_score']
+    numerical_columns = numerical_columns.drop([col for col in columns_to_drop if col in numerical_columns])    
+    
     for event, group in playlist_df.groupby('event'):
         # If the group has less than two rows, skip this iteration
         if len(group) < 2:
@@ -150,6 +152,7 @@ def get_all_transformations(playlist_df, numerical_cols):
     # Filter out columns with skewness greater than a threshold (e.g., 0.5)
     highly_skewed_columns = skewness[skewness_bool].index
 
+    playlist_df = playlist_df.copy()
     # Apply StandardScaler, PowerTransformer, and QuantileTransformer to highly skewed columns
     for column in highly_skewed_columns:
         playlist_df.loc[:, column + "_st_scale"] = scaler.fit_transform(playlist_df[[column]])
