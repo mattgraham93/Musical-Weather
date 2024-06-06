@@ -88,7 +88,7 @@ def create_app():
         all_songs = random.sample(all_songs, 50)
 
     # Render the template with the datasets
-    return render_template("tables.basic-table.html", weather=weather_data["todays_forecast"], songs=all_songs)
+    return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
         
   '''    
     ideally: find way to save to playlist
