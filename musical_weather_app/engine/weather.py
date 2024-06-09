@@ -47,27 +47,27 @@ from statsmodels.tsa.arima.model import ARIMA
 
 def predict_forecasted_event(todays_forecast, forecast_model):
     # Ensure that 'date' is of datetime type
-    if 'date' in todays_forecast.columns:
-        todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
+    # if 'date' in todays_forecast.columns:
+    #     todays_forecast['date'] = pd.to_datetime(todays_forecast['date'])
 
-        # Check if 'date' is already timezone-aware
-        if todays_forecast['date'].dt.tz is None:
-            # If not, make 'date' timezone-aware
-            todays_forecast['date'] = todays_forecast['date'].dt.tz_localize('America/Los_Angeles')
+    #     # Check if 'date' is already timezone-aware
+    #     if todays_forecast['date'].dt.tz is None:
+    #         # If not, make 'date' timezone-aware
+    #         todays_forecast['date'] = todays_forecast['date'].dt.tz_localize('America/Los_Angeles')
 
-        # Set 'date' as the index of the DataFrame
-        todays_forecast.set_index('date', inplace=True)
+    #     # Set 'date' as the index of the DataFrame
+    #     todays_forecast.set_index('date', inplace=True)
 
-    # Make predictions
-    start_date = todays_forecast.index.min().tz_localize(None)
-    end_date = todays_forecast.index.max().tz_localize(None)
-    forecasted_values = forecast_model.predict(start=start_date, end=end_date)
-    # Add the forecasted values to the DataFrame
-    todays_forecast['forecasted_event'] = forecasted_values
+    # # Make predictions
+    # start_date = todays_forecast.index.min().tz_localize(None)
+    # end_date = todays_forecast.index.max().tz_localize(None)
+    # forecasted_values = forecast_model.predict(start=start_date, end=end_date)
+    # # Add the forecasted values to the DataFrame
+    # todays_forecast['forecasted_event'] = forecasted_values
 
-    # If 'forecasted_event' is null, set it to the 'event'
-    if 'event' in todays_forecast.columns:
-        todays_forecast['forecasted_event'].fillna(todays_forecast['event'], inplace=True)
+    # # If 'forecasted_event' is null, set it to the 'event'
+    # if 'event' in todays_forecast.columns:
+    #     todays_forecast['forecasted_event'].fillna(todays_forecast['event'], inplace=True)
 
     return todays_forecast
 
