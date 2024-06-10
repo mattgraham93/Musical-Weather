@@ -6,6 +6,11 @@ import time
 import uuid
 import musical_weather
 import random
+import matplotlib.pyplot as plt
+
+import io
+import urllib
+import base64
 
 from blueprints.activities import activities
 
@@ -67,11 +72,51 @@ def create_app():
     # Get weather data
     historical_weather, historical_summary = musical_weather.get_stored_weather()
     todays_forecast = musical_weather.get_forecast(historical_weather)
+    
+    todays_forecast['temperature_2m_max'] = todays_forecast['temperature_2m_max'].astype(float).round(1)
+    
     weather_data = {
         'historical_weather': historical_weather.to_dict(orient='records'),
         'historical_summary': historical_summary.to_dict(orient='records'),
         'todays_forecast': todays_forecast.to_dict(orient='records')
     }
+    
+    print(f"------------------------{weather_data['todays_forecast'][0]['temperature_2m_max']}°F")
+    
+    # Get the season of today's forecast
+    todays_season = todays_forecast['season'].iloc[0]
+
+    # Filter the historical_weather DataFrame
+    filtered_historical_weather = historical_weather[historical_weather['season'] == todays_season]
+
+    # Now you can use filtered_historical_weather['average_t_score'] to get the average_t_score values for the current season
+
+    # Plot histogram of historical average_t_score
+    plt.hist(filtered_historical_weather['average_t_score'], bins=30, alpha=0.5, label='Historical')
+    
+    # Mark today's average_t_score
+    plt.axvline(todays_forecast['average_t_score'].iloc[0], color='r', linestyle='dashed', linewidth=2, label='Today')
+    
+    plt.xlabel('Average T Score')
+    plt.ylabel('Frequency')
+    plt.legend()
+    
+    # # Save the figure
+    # plt.savefig('templates/assets/images/test.png')
+    # plt.close()
+    
+    png_image = io.BytesIO()
+    plt.savefig(png_image, format='png')
+
+    # Encode PNG image to base64 string
+    png_image_b64_string = "data:image/png;base64,"
+    png_image_b64_string += urllib.parse.quote(base64.b64encode(png_image.getvalue()))
+    
+    # try:
+    #   with open('static/images/histogram.png', 'rb') as f:
+    #     print("File can be opened.")
+    # except IOError as e:
+    #     print("Cannot open file. Error:", e)
 
     # Get songs data
     selected_songs_weather, selected_songs_season = musical_weather.main()
@@ -88,7 +133,7 @@ def create_app():
         all_songs = random.sample(all_songs, 50)
 
     # Render the template with the datasets
-    return render_template("tables.basic-table.html", weather=weather_data, songs=all_songs)
+    return render_template("tables.basic-table.html", weather=weather_data["todays_forecast"], songs=all_songs, histogram=png_image_b64_string)
         
   '''    
     ideally: find way to save to playlist
@@ -127,3 +172,4 @@ if __name__ == "__main__":
   #    app = create_app()
   print(" Starting app...")
   app.run(host="0.0.0.0", port=5000)
+  

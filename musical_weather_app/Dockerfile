@@ -3,7 +3,7 @@ FROM python:3.10-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED True
-ENV APP_HOME /musical_weather_app
+ENV APP_HOME /app
 ENV PORT 5000
 
 # Set the working directory in the container to APP_HOME
