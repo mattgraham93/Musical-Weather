@@ -5,12 +5,28 @@ from urllib.request import urlopen
 import pandas as pd
 import numpy as np
 
-import sys
-sys.path.insert(0, '..')
-from weather_files import weather_today as wt, weather_historical as wh
-
-import senitment_analysis as sa
-import mongodb
+try:
+    # Try relative imports first
+    from ..weather_files import weather_today as wt, weather_historical as wh
+    from . import senitment_analysis as sa
+    from . import mongodb
+except ImportError:
+    try:
+        # Try absolute imports
+        from weather_files import weather_today as wt, weather_historical as wh
+        from engine import senitment_analysis as sa
+        from engine import mongodb
+    except ImportError:
+        # Fallback for when running as script
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.dirname(current_dir)
+        sys.path.append(parent_dir)
+        sys.path.append(current_dir)
+        from weather_files import weather_today as wt, weather_historical as wh
+        import senitment_analysis as sa
+        import mongodb
 from datetime import datetime
 
 from statsmodels.tsa.arima.model import ARIMA

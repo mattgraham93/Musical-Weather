@@ -1,0 +1,1 @@
+# Blueprints module for Musical Weather app

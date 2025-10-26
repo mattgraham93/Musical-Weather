@@ -1,22 +1,56 @@
 # Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED True
-ENV APP_HOME /app
-ENV PORT 5000
+# Set environment variables for production
+ENV PYTHONUNBUFFERED=True
+ENV APP_HOME=/app
+ENV PORT=8080
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PIP_NO_CACHE_DIR=1
 
-# Set the working directory in the container to APP_HOME
+# Set the working directory in the container
 WORKDIR $APP_HOME
 
-# Copy the local directory contents into the container at APP_HOME
-COPY . ./
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install any needed packages specified in requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt ./
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 5000 available to the world outside this container
+# Copy the application code
+COPY . ./
+
+# Download NLTK data during image build (with better error handling)
+RUN python -c "import nltk; \
+    nltk.download('vader_lexicon', quiet=True); \
+    nltk.download('stopwords', quiet=True); \
+    nltk.download('punkt', quiet=True); \
+    nltk.download('wordnet', quiet=True); \
+    print('NLTK data downloaded successfully')" || \
+    echo "Warning: NLTK download failed, app will run in limited mode"
+
+# Create a non-root user for security
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app $APP_HOME
+USER app
+
+# Expose the port
 EXPOSE $PORT
 
-# Run main.py when the container launches
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+# Run the application with gunicorn
+CMD exec gunicorn \
+    --bind :$PORT \
+    --workers 1 \
+    --threads 2 \
+    --timeout 60 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    cloud_main:app

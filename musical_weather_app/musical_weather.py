@@ -16,7 +16,19 @@
     - ability to select a city
 '''
 
-from engine import spotify_enrichment, weather
+try:
+    # Try relative import first for proper package structure
+    from .engine import spotify_enrichment, weather
+except ImportError:
+    try:
+        # Try absolute import
+        from engine import spotify_enrichment, weather
+    except ImportError:
+        # Last resort fallback
+        import sys
+        import os
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from engine import spotify_enrichment, weather
 import pandas as pd
 from datetime import datetime
 import pytz

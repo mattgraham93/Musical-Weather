@@ -1,0 +1,1 @@
+# Music files module for Musical Weather app

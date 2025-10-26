@@ -2,33 +2,45 @@ import json
 import pandas as pd
 import numpy as np
 import time
-import sys
-import os
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-import mongodb
-
-from spotify_py_sdk import SpotifyApi, SdkConfig
-
-from sklearn.preprocessing import StandardScaler, PowerTransformer, QuantileTransformer, LabelEncoder
-from scipy.stats import skew
-
 from dotenv import load_dotenv
 load_dotenv()
 
-import cloud_driver
+from spotify_py_sdk import SpotifyApi, SdkConfig
+from sklearn.preprocessing import StandardScaler, PowerTransformer, QuantileTransformer, LabelEncoder
+from scipy.stats import skew
+
+try:
+    # Try relative imports first
+    from . import mongodb
+    from . import cloud_driver
+except ImportError:
+    # Fallback for when running as script
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import mongodb
+    from engine import cloud_driver
 
 project_id = "musical-weather"
 secret_id_client_id = "spotify_client_id"
 secret_id_client_secret = "spotify_client_secret"
 
-# Access the secrets
-CLIENT_ID = cloud_driver.access_secret_version(project_id, secret_id_client_id)
-CLIENT_SECRET = cloud_driver.access_secret_version(project_id, secret_id_client_secret)
+# Access the secrets with error handling
+CLIENT_ID = None
+CLIENT_SECRET = None
+api = None
+SPOTIFY_AVAILABLE = False
 
-config = SdkConfig() # optional; can create custom methods
-api: SpotifyApi = SpotifyApi(CLIENT_ID, CLIENT_SECRET, config)
+try:
+    CLIENT_ID = cloud_driver.access_secret_version(project_id, secret_id_client_id)
+    CLIENT_SECRET = cloud_driver.access_secret_version(project_id, secret_id_client_secret)
+    config = SdkConfig() # optional; can create custom methods
+    api = SpotifyApi(CLIENT_ID, CLIENT_SECRET, config)
+    SPOTIFY_AVAILABLE = True
+    print("Spotify credentials loaded successfully")
+except Exception as e:
+    print(f"Warning: Could not load Spotify credentials: {e}")
+    print("Spotify functionality will be disabled")
 
 
 def get_song_uri(song, artist):
